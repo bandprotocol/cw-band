@@ -1,1 +1,1 @@
-d8e36f62c1f21ecf0662f36c8c0bcf3fd443bcbd49fc7833db6f01612936e6d5  poc_price_feed.wasm
+652f19bb395feab287dd578f44f5e748d923c07cef499bf035f5aebe2ea594f8  poc_price_feed.wasm

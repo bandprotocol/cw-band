@@ -1,7 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    from_slice, to_binary, Binary, Deps, DepsMut, Empty, Env, Ibc3ChannelOpenResponse,
+    from_slice, to_binary, Binary, Coin, Deps, DepsMut, Empty, Env, Ibc3ChannelOpenResponse,
     IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
     IbcChannelOpenResponse, IbcMsg, IbcOrder, IbcPacketAckMsg, IbcPacketReceiveMsg,
     IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, MessageInfo, Response, StdError,
@@ -25,8 +25,8 @@ pub const IBC_APP_VERSION: &str = "bandchain-1";
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
-    msg: InstantiateMsg,
+    _info: MessageInfo,
+    _msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
@@ -37,7 +37,7 @@ pub fn instantiate(
 pub fn execute(
     deps: DepsMut,
     env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
@@ -57,9 +57,19 @@ pub fn try_request(
             .map_err(|err| ContractError::CustomError {
                 val: err.to_string(),
             })?;
+    let packet = OracleRequestPacketData {
+        client_id: "Test".into(),
+        ask_count: 4,
+        min_count: 3,
+        calldata: raw_calldata,
+        prepare_gas: 10000,
+        execute_gas: 50000,
+        oracle_script_id: 1,
+        fee_limit: vec![Coin::new(1000000, "uband")],
+    };
     Ok(Response::new().add_message(IbcMsg::SendPacket {
         channel_id: endpoint.channel_id,
-        data: to_binary(&raw_calldata)?,
+        data: to_binary(&packet)?,
         timeout: IbcTimeout::with_timestamp(env.block.time.plus_seconds(60)),
     }))
 }
@@ -117,9 +127,9 @@ pub fn ibc_channel_connect(
 
 #[entry_point]
 pub fn ibc_channel_close(
-    deps: DepsMut,
-    env: Env,
-    msg: IbcChannelCloseMsg,
+    _deps: DepsMut,
+    _env: Env,
+    _msg: IbcChannelCloseMsg,
 ) -> StdResult<IbcBasicResponse> {
     Ok(IbcBasicResponse::new())
 }
@@ -157,7 +167,7 @@ pub fn ibc_packet_receive(
     let result: BandResult =
         OBIDecode::try_from_slice(&resp.result).map_err(|err| StdError::ParseErr {
             target_type: "Oracle response packet".into(),
-            msg: "TODO".into(),
+            msg: err.to_string(),
         })?;
     for (s, r) in symbols.iter().zip(result.rates.iter()) {
         RATES.save(
@@ -183,7 +193,7 @@ pub fn ibc_packet_ack(
     let calldata: BandCalldata =
         OBIDecode::try_from_slice(&packet.calldata).map_err(|err| StdError::ParseErr {
             target_type: "Oracle request packet".into(),
-            msg: "TODO".into(),
+            msg: err.to_string(),
         })?;
     let ack: BandAcknowledgement = from_slice(&msg.acknowledgement.data)?;
     REQUESTS.save(deps.storage, ack.request_id, &calldata.symbols)?;
