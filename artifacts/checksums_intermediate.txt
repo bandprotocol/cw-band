@@ -1,1 +1,1 @@
-e20ff4e17934d400ec38fd933581e841db6c5bb16688d8618c923901a5ef21e5  ./target/wasm32-unknown-unknown/release/poc_price_feed.wasm
+435f9713419998bee77fc1fcf474ea996dfe6e2236078bf2932c47c83551c7ec  ./target/wasm32-unknown-unknown/release/poc_price_feed.wasm

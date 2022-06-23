@@ -5,7 +5,7 @@ use cosmwasm_std::{
     IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
     IbcChannelOpenResponse, IbcMsg, IbcOrder, IbcPacketAckMsg, IbcPacketReceiveMsg,
     IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, MessageInfo, Response, StdError,
-    StdResult,
+    StdResult, Uint64,
 };
 use cw2::set_contract_version;
 use obi::{OBIDecode, OBIEncode};
@@ -61,12 +61,12 @@ pub fn try_request(
             })?;
     let packet = OracleRequestPacketData {
         client_id: "Test".into(),
-        ask_count: 4,
-        min_count: 3,
+        ask_count: Uint64::from(4 as u64),
+        min_count: Uint64::from(3 as u64),
         calldata: raw_calldata,
-        prepare_gas: 10000,
-        execute_gas: 50000,
-        oracle_script_id: 1,
+        prepare_gas: Uint64::from(10000 as u64),
+        execute_gas: Uint64::from(50000 as u64),
+        oracle_script_id: Uint64::from(1 as u64),
         fee_limit: vec![Coin::new(1000000, "uband")],
     };
     Ok(Response::new().add_message(IbcMsg::SendPacket {
@@ -160,12 +160,12 @@ pub fn ibc_packet_receive(
     let packet = msg.packet;
 
     let resp: OracleResponsePacketData = from_slice(&packet.data)?;
-    if resp.resolve_status != 1 {
+    if resp.resolve_status != "RESOLVE_STATUS_SUCCESS" {
         return Err(StdError::GenericErr {
             msg: "Resolve failed".into(),
         });
     }
-    let symbols = REQUESTS.load(deps.storage, resp.request_id)?;
+    let symbols = REQUESTS.load(deps.storage, resp.request_id.into())?;
     let result: BandResult =
         OBIDecode::try_from_slice(&resp.result).map_err(|err| StdError::ParseErr {
             target_type: "Oracle response packet".into(),
@@ -177,11 +177,11 @@ pub fn ibc_packet_receive(
             s.into(),
             &Rate {
                 rate: *r,
-                resolved_time: resp.resolve_time,
+                resolved_time: resp.resolve_time.into(),
             },
         )?;
     }
-    Ok(IbcReceiveResponse::new())
+    Ok(IbcReceiveResponse::new().set_ack(vec![1]))
 }
 
 #[entry_point]
@@ -201,7 +201,7 @@ pub fn ibc_packet_ack(
     match res {
         AcknowledgementMsg::Result(bz) => {
             let ack: BandAcknowledgement = from_slice(&bz)?;
-            REQUESTS.save(deps.storage, ack.request_id, &calldata.symbols)?;
+            REQUESTS.save(deps.storage, ack.request_id.into(), &calldata.symbols)?;
             Ok(IbcBasicResponse::new().add_attribute("action", "ibc_packet_ack"))
         }
         AcknowledgementMsg::Err(err) => Err(StdError::GenericErr {
