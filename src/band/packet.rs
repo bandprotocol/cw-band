@@ -25,6 +25,16 @@ pub struct OracleResponsePacketData {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum AcknowledgementMsg<S> {
+    Result(S),
+    /// An error type that every custom error created by contract developers can be converted to.
+    /// This could potientially have more structure, but String is the easiest.
+    #[serde(rename = "error")]
+    Err(String),
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct BandAcknowledgement {
     pub request_id: u64,
 }

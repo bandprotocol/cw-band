@@ -1,16 +1,18 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    from_slice, to_binary, Binary, Coin, Deps, DepsMut, Empty, Env, Ibc3ChannelOpenResponse,
-    IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
-    IbcChannelOpenResponse, IbcMsg, IbcOrder, IbcPacketAckMsg, IbcPacketReceiveMsg,
-    IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, MessageInfo, Response, StdError,
-    StdResult,
+    from_slice, to_binary, Binary, Coin, ContractResult, Deps, DepsMut, Empty, Env,
+    Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg,
+    IbcChannelOpenMsg, IbcChannelOpenResponse, IbcMsg, IbcOrder, IbcPacketAckMsg,
+    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, MessageInfo,
+    Response, StdError, StdResult,
 };
 use cw2::set_contract_version;
 use obi::{OBIDecode, OBIEncode};
 
-use crate::band::{BandAcknowledgement, OracleRequestPacketData, OracleResponsePacketData};
+use crate::band::{
+    AcknowledgementMsg, BandAcknowledgement, OracleRequestPacketData, OracleResponsePacketData,
+};
 use crate::error::ContractError;
 use crate::msg::{BandCalldata, BandResult, ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{Rate, ENDPOINT, RATES, REQUESTS};
@@ -195,9 +197,17 @@ pub fn ibc_packet_ack(
             target_type: "Oracle request packet".into(),
             msg: err.to_string(),
         })?;
-    let ack: BandAcknowledgement = from_slice(&msg.acknowledgement.data)?;
-    REQUESTS.save(deps.storage, ack.request_id, &calldata.symbols)?;
-    Ok(IbcBasicResponse::new().add_attribute("action", "ibc_packet_ack"))
+    let res: AcknowledgementMsg<Binary> = from_slice(&msg.acknowledgement.data)?;
+    match res {
+        AcknowledgementMsg::Result(bz) => {
+            let ack: BandAcknowledgement = from_slice(&bz)?;
+            REQUESTS.save(deps.storage, ack.request_id, &calldata.symbols)?;
+            Ok(IbcBasicResponse::new().add_attribute("action", "ibc_packet_ack"))
+        }
+        AcknowledgementMsg::Err(err) => Err(StdError::GenericErr {
+            msg: format!("Fail ack err: {:}", err),
+        }),
+    }
 }
 
 #[entry_point]

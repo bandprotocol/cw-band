@@ -1,3 +1,5 @@
 mod packet;
 
-pub use packet::{BandAcknowledgement, OracleRequestPacketData, OracleResponsePacketData};
+pub use packet::{
+    AcknowledgementMsg, BandAcknowledgement, OracleRequestPacketData, OracleResponsePacketData,
+};
