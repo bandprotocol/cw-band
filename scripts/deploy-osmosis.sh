@@ -16,3 +16,13 @@ INITIAL_STATE='{}'
 osmosisd tx wasm instantiate $CODE_ID $INITIAL_STATE --amount 50000uosmo  --label "Counter Contract" --from $DEPLOYER --chain-id $CHAIN_ID --gas-prices 0.1uosmo --gas auto --gas-adjustment 1.3 -b block -y --no-admin
 CONTRACT_ADDR=$(osmosisd query wasm list-contract-by-code $CODE_ID --output json | jq -r '.contracts[0]')
 echo "Your contract address is $CONTRACT_ADDR"
+
+# Query tx hash
+# osmosisd query tx <TX_HASH>
+
+# Execute message
+# osmosisd tx wasm execute $CONTRACT_ADDR '{"request":{"symbols": ["BTC"] }}' --from test -y  --chain-id=$CHAIN_ID
+
+# Query contract
+# osmosisd query wasm contract-state smart $CONTRACT_ADDR '{"get_rate":{"symbol":"BTC"}}' --chain-id $CHAIN_ID
+
