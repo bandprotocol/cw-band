@@ -1,3 +1,4 @@
+use std::fmt::format;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -84,7 +85,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 fn query_rate(deps: Deps, symbol: String) -> StdResult<Rate> {
-    RATES.load(deps.storage, symbol)
+    match RATES.may_load(deps.storage, symbol.clone())? {
+        Some(rates) => Ok(rates),
+        None => Err(StdError::generic_err(format!("Symbol {} not available", symbol))),
+    }
 }
 
 #[entry_point]
