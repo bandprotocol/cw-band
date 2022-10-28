@@ -1,36 +1,52 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    from_slice, to_binary, Binary, Coin, Deps, DepsMut, Empty, Env, Ibc3ChannelOpenResponse,
+    from_slice, to_binary, Binary, Deps, DepsMut, Empty, Env, Ibc3ChannelOpenResponse,
     IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
     IbcChannelOpenResponse, IbcMsg, IbcOrder, IbcPacketAckMsg, IbcPacketReceiveMsg,
     IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, MessageInfo, Response, StdError,
-    StdResult, Uint64,
+    StdResult, Uint256,
 };
 use cw2::set_contract_version;
-use obi::{OBIDecode, OBIEncode};
 
-use crate::band::{
-    AcknowledgementMsg, BandAcknowledgement, OracleRequestPacketData, OracleResponsePacketData,
-};
 use crate::error::ContractError;
-use crate::msg::{BandCalldata, BandResult, ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::{Rate, ENDPOINT, RATES, REQUESTS};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::state::{Rate, ReferenceData, CONFIG, ENDPOINT, RATES};
+use ::obi::dec::OBIDecode;
+use ::obi::enc::OBIEncode;
+
+use band::{
+    Config, Input, OracleRequestPacketData, OracleResponsePacketData, Output, IBC_APP_VERSION,
+};
+
+pub static E18: Uint256 = Uint256::from_u128(1_000_000_000_000_000_000u128);
 
 // version info for migration info
-const CONTRACT_NAME: &str = "crates.io:poc-price-feed";
+const CONTRACT_NAME: &str = "crates.io:band-ibc-price-feed";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-pub const IBC_APP_VERSION: &str = "bandchain-1";
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
+    CONFIG.save(
+        deps.storage,
+        &Config {
+            client_id: msg.client_id,
+            oracle_script_id: msg.oracle_script_id,
+            ask_count: msg.ask_count,
+            min_count: msg.min_count,
+            fee_limit: msg.fee_limit,
+            prepare_gas: msg.prepare_gas,
+            execute_gas: msg.execute_gas,
+            minimum_sources: msg.minimum_sources,
+        },
+    )?;
 
     Ok(Response::new().add_attribute("method", "instantiate"))
 }
@@ -47,27 +63,33 @@ pub fn execute(
     }
 }
 
+// TODO: Implement bounty logic to incentivize relayer and no one can spam request for free
 pub fn try_request(
     deps: DepsMut,
     env: Env,
     symbols: Vec<String>,
 ) -> Result<Response, ContractError> {
     let endpoint = ENDPOINT.load(deps.storage)?;
-    let raw_calldata =
-        BandCalldata::new(symbols)
-            .try_to_vec()
-            .map_err(|err| ContractError::CustomError {
-                val: err.to_string(),
-            })?;
+    let config = CONFIG.load(deps.storage)?;
+
+    let raw_calldata = Input {
+        symbols,
+        minimum_sources: config.minimum_sources,
+    }
+    .try_to_vec()
+    .map_err(|err| ContractError::CustomError {
+        val: err.to_string(),
+    })?;
+
     let packet = OracleRequestPacketData {
-        client_id: "Test".into(),
-        ask_count: Uint64::from(4 as u64),
-        min_count: Uint64::from(3 as u64),
+        client_id: config.client_id,
+        ask_count: config.ask_count,
+        min_count: config.min_count,
         calldata: raw_calldata,
-        prepare_gas: Uint64::from(10000 as u64),
-        execute_gas: Uint64::from(50000 as u64),
-        oracle_script_id: Uint64::from(1 as u64),
-        fee_limit: vec![Coin::new(1000000, "uband")],
+        prepare_gas: config.prepare_gas,
+        execute_gas: config.execute_gas,
+        oracle_script_id: config.oracle_script_id,
+        fee_limit: config.fee_limit,
     };
     Ok(Response::new().add_message(IbcMsg::SendPacket {
         channel_id: endpoint.channel_id,
@@ -79,12 +101,41 @@ pub fn try_request(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetRate { symbol } => to_binary(&query_rate(deps, symbol)?),
+        QueryMsg::GetRate { symbol } => to_binary(&query_rate(deps, &symbol)?),
+        QueryMsg::GetReferenceData { symbol_pair } => {
+            to_binary(&query_reference_data(deps, &symbol_pair)?)
+        }
+        QueryMsg::GetReferenceDataBulk { symbol_pairs } => {
+            to_binary(&query_reference_data_bulk(deps, &symbol_pairs)?)
+        }
     }
 }
 
-fn query_rate(deps: Deps, symbol: String) -> StdResult<Rate> {
+fn query_rate(deps: Deps, symbol: &str) -> StdResult<Rate> {
     RATES.load(deps.storage, symbol)
+}
+
+fn query_reference_data(deps: Deps, symbol_pair: &(String, String)) -> StdResult<ReferenceData> {
+    let base = query_rate(deps, &symbol_pair.0)?;
+    let quote = query_rate(deps, &symbol_pair.1)?;
+
+    Ok(ReferenceData::new(
+        Uint256::from(base.rate)
+            .checked_mul(E18)?
+            .checked_div(Uint256::from(quote.rate))?,
+        base.resolve_time,
+        quote.resolve_time,
+    ))
+}
+
+fn query_reference_data_bulk(
+    deps: Deps,
+    symbol_pairs: &[(String, String)],
+) -> StdResult<Vec<ReferenceData>> {
+    symbol_pairs
+        .iter()
+        .map(|pair| query_reference_data(deps, pair))
+        .collect()
 }
 
 #[entry_point]
@@ -142,16 +193,7 @@ pub fn migrate(_deps: DepsMut, _env: Env, _msg: Empty) -> StdResult<Response> {
     Ok(Response::default())
 }
 
-// // this encode an error or error message into a proper acknowledgement to the recevier
-// fn encode_ibc_error(msg: impl Into<String>) -> Binary {
-//     // this cannot error, unwrap to keep the interface simple
-//     to_binary(&AcknowledgementMsg::<()>::Err(msg.into())).unwrap()
-// }
-
 #[entry_point]
-/// we look for a the proper reflect contract to relay to and send the message
-/// We cannot return any meaningful response value as we do not know the response value
-/// of execution. We just return ok if we dispatched, error if we failed to dispatch
 pub fn ibc_packet_receive(
     deps: DepsMut,
     _env: Env,
@@ -160,54 +202,42 @@ pub fn ibc_packet_receive(
     let packet = msg.packet;
 
     let resp: OracleResponsePacketData = from_slice(&packet.data)?;
-    if resp.resolve_status != "RESOLVE_STATUS_SUCCESS" {
-        return Err(StdError::GenericErr {
-            msg: "Resolve failed".into(),
-        });
+    if resp.resolve_status != 1 {
+        // Prevent replay relay failed packet
+        return Ok(IbcReceiveResponse::new().add_attribute("action", "ibc_packet_received"));
     }
-    let symbols = REQUESTS.load(deps.storage, resp.request_id.into())?;
-    let result: BandResult =
+    let result: Output =
         OBIDecode::try_from_slice(&resp.result).map_err(|err| StdError::ParseErr {
             target_type: "Oracle response packet".into(),
             msg: err.to_string(),
         })?;
-    for (s, r) in symbols.iter().zip(result.rates.iter()) {
-        RATES.save(
-            deps.storage,
-            s.into(),
-            &Rate {
-                rate: *r,
-                resolved_time: resp.resolve_time.into(),
-            },
-        )?;
+
+    for r in result.responses {
+        if r.response_code == 0 {
+            let rate = RATES.may_load(deps.storage, &r.symbol)?;
+            if rate.is_none() || rate.unwrap().resolve_time < resp.resolve_time {
+                RATES.save(
+                    deps.storage,
+                    &r.symbol,
+                    &Rate {
+                        rate: r.rate,
+                        resolve_time: resp.resolve_time,
+                        request_id: resp.request_id,
+                    },
+                )?;
+            }
+        }
     }
-    Ok(IbcReceiveResponse::new().set_ack(vec![1]))
+    Ok(IbcReceiveResponse::new().add_attribute("action", "ibc_packet_received"))
 }
 
 #[entry_point]
-/// TODO: Save request id to state
 pub fn ibc_packet_ack(
-    deps: DepsMut,
+    _deps: DepsMut,
     _env: Env,
-    msg: IbcPacketAckMsg,
+    _msg: IbcPacketAckMsg,
 ) -> StdResult<IbcBasicResponse> {
-    let packet: OracleRequestPacketData = from_slice(&msg.original_packet.data)?;
-    let calldata: BandCalldata =
-        OBIDecode::try_from_slice(&packet.calldata).map_err(|err| StdError::ParseErr {
-            target_type: "Oracle request packet".into(),
-            msg: err.to_string(),
-        })?;
-    let res: AcknowledgementMsg<Binary> = from_slice(&msg.acknowledgement.data)?;
-    match res {
-        AcknowledgementMsg::Result(bz) => {
-            let ack: BandAcknowledgement = from_slice(&bz)?;
-            REQUESTS.save(deps.storage, ack.request_id.into(), &calldata.symbols)?;
-            Ok(IbcBasicResponse::new().add_attribute("action", "ibc_packet_ack"))
-        }
-        AcknowledgementMsg::Err(err) => Err(StdError::GenericErr {
-            msg: format!("Fail ack err: {:}", err),
-        }),
-    }
+    Ok(IbcBasicResponse::new().add_attribute("action", "ibc_packet_ack"))
 }
 
 #[entry_point]
@@ -220,6 +250,7 @@ pub fn ibc_packet_timeout(
     Ok(IbcBasicResponse::new().add_attribute("action", "ibc_packet_timeout"))
 }
 
+// TODO: Writing test
 // #[cfg(test)]
 // mod tests {
 //     use super::*;
