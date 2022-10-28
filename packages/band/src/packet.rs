@@ -20,7 +20,7 @@ pub struct OracleResponsePacketData {
     pub ans_count: Uint64,
     pub request_time: Uint64,
     pub resolve_time: Uint64,
-    pub resolve_status: String,
+    pub resolve_status: Uint64,
     pub result: Binary,
 }
 

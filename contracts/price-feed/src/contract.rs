@@ -5,7 +5,7 @@ use cosmwasm_std::{
     IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
     IbcChannelOpenResponse, IbcMsg, IbcOrder, IbcPacketAckMsg, IbcPacketReceiveMsg,
     IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, MessageInfo, Response, StdError,
-    StdResult, Uint256,
+    StdResult, Uint256, Uint64,
 };
 use cw2::set_contract_version;
 
@@ -83,12 +83,12 @@ pub fn try_request(
 
     let packet = OracleRequestPacketData {
         client_id: config.client_id,
-        ask_count: config.ask_count,
-        min_count: config.min_count,
+        ask_count: config.ask_count.into(),
+        min_count: config.min_count.into(),
         calldata: raw_calldata,
-        prepare_gas: config.prepare_gas,
-        execute_gas: config.execute_gas,
-        oracle_script_id: config.oracle_script_id,
+        prepare_gas: config.prepare_gas.into(),
+        execute_gas: config.execute_gas.into(),
+        oracle_script_id: config.oracle_script_id.into(),
         fee_limit: config.fee_limit,
     };
     Ok(Response::new().add_message(IbcMsg::SendPacket {
@@ -202,7 +202,7 @@ pub fn ibc_packet_receive(
     let packet = msg.packet;
 
     let resp: OracleResponsePacketData = from_slice(&packet.data)?;
-    if resp.resolve_status != 1 {
+    if resp.resolve_status.u64() != 1 {
         // Prevent replay relay failed packet
         return Ok(IbcReceiveResponse::new().add_attribute("action", "ibc_packet_received"));
     }
@@ -220,7 +220,7 @@ pub fn ibc_packet_receive(
                     deps.storage,
                     &r.symbol,
                     &Rate {
-                        rate: r.rate,
+                        rate: Uint64::from(r.rate),
                         resolve_time: resp.resolve_time,
                         request_id: resp.request_id,
                     },

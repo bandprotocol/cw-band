@@ -1,14 +1,14 @@
 use band::Config;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::IbcEndpoint;
-use cosmwasm_std::Uint256;
+use cosmwasm_std::{Uint256, Uint64};
 use cw_storage_plus::{Item, Map};
 
 #[cw_serde]
 pub struct Rate {
-    pub rate: u64,
-    pub resolve_time: u64,
-    pub request_id: u64,
+    pub rate: Uint64,
+    pub resolve_time: Uint64,
+    pub request_id: Uint64,
 }
 
 pub const RATES: Map<&str, Rate> = Map::new("rates");
@@ -22,13 +22,13 @@ pub struct ReferenceData {
     // Pair rate e.g. rate of BTC/USD
     pub rate: Uint256,
     // Unix time of when the base asset was last updated. e.g. Last update time of BTC in Unix time
-    pub last_updated_base: u64,
+    pub last_updated_base: Uint64,
     // Unix time of when the quote asset was last updated. e.g. Last update time of USD in Unix time
-    pub last_updated_quote: u64,
+    pub last_updated_quote: Uint64,
 }
 
 impl ReferenceData {
-    pub fn new(rate: Uint256, last_updated_base: u64, last_updated_quote: u64) -> Self {
+    pub fn new(rate: Uint256, last_updated_base: Uint64, last_updated_quote: Uint64) -> Self {
         ReferenceData {
             rate,
             last_updated_base,
