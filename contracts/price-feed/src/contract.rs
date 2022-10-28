@@ -19,7 +19,8 @@ use band::{
     Config, Input, OracleRequestPacketData, OracleResponsePacketData, Output, IBC_APP_VERSION,
 };
 
-pub static E18: Uint256 = Uint256::from_u128(1_000_000_000_000_000_000u128);
+const E9: Uint64 = Uint64::new(1_000_000_000u64);
+const E18: Uint256 = Uint256::from_u128(1_000_000_000_000_000_000u128);
 
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:band-ibc-price-feed";
@@ -112,7 +113,11 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 fn query_rate(deps: Deps, symbol: &str) -> StdResult<Rate> {
-    RATES.load(deps.storage, symbol)
+    if symbol == "USD" {
+        Ok(Rate::new(E9, Uint64::MAX, Uint64::new(0)))
+    } else {
+        RATES.load(deps.storage, symbol)
+    }
 }
 
 fn query_reference_data(deps: Deps, symbol_pair: &(String, String)) -> StdResult<ReferenceData> {

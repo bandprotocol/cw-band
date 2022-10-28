@@ -11,6 +11,16 @@ pub struct Rate {
     pub request_id: Uint64,
 }
 
+impl Rate {
+    pub fn new(rate: Uint64, resolve_time: Uint64, request_id: Uint64) -> Self {
+        Rate {
+            rate,
+            resolve_time,
+            request_id,
+        }
+    }
+}
+
 pub const RATES: Map<&str, Rate> = Map::new("rates");
 
 pub const ENDPOINT: Item<IbcEndpoint> = Item::new("endpoint");
