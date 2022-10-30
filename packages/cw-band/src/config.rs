@@ -1,8 +1,7 @@
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Coin, Uint64};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct Config {
     pub client_id: String,
     pub oracle_script_id: Uint64,

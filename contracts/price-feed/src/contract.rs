@@ -15,7 +15,7 @@ use crate::state::{Rate, ReferenceData, CONFIG, ENDPOINT, RATES};
 use ::obi::dec::OBIDecode;
 use ::obi::enc::OBIEncode;
 
-use band::{
+use cw_band::{
     Config, Input, OracleRequestPacketData, OracleResponsePacketData, Output, IBC_APP_VERSION,
 };
 

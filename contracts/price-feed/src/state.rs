@@ -1,7 +1,7 @@
-use band::Config;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::IbcEndpoint;
 use cosmwasm_std::{Uint256, Uint64};
+use cw_band::Config;
 use cw_storage_plus::{Item, Map};
 
 #[cw_serde]

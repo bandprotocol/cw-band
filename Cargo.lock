@@ -9,16 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08f9b8508dccb7687a1d6c4ce66b2b0ecef467c94667de27d8d7fe1f8d2a9cdc"
 
 [[package]]
-name = "band"
-version = "0.1.0"
-dependencies = [
- "cosmwasm-std",
- "obi",
- "schemars",
- "serde",
-]
-
-[[package]]
 name = "base16ct"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -190,6 +180,16 @@ dependencies = [
  "rand_core 0.5.1",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "cw-band"
+version = "0.1.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "obi",
+ "serde",
 ]
 
 [[package]]
@@ -493,15 +493,13 @@ dependencies = [
 name = "price-feed"
 version = "0.1.0"
 dependencies = [
- "band",
  "cosmwasm-schema",
  "cosmwasm-std",
- "cosmwasm-storage",
+ "cw-band",
  "cw-multi-test",
  "cw-storage-plus",
  "cw2",
  "obi",
- "schemars",
  "serde",
  "serde_json",
  "thiserror",
