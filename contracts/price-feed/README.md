@@ -2,7 +2,8 @@
 
 ## Overview
 
-[//]: # (TODO)
+This contract is a demo implementation for how to request data on BandChain through IBC with CosmWasm.
+The contract shown here is still under development and is **NOT** intended for production use.
 
 ## Build
 
@@ -85,11 +86,6 @@ The contract contains the following query messages:
 
 ```rust
 pub enum QueryMsg {
-    // Returns the RefData of a given symbol
-    GetRate {
-        // Symbol to query
-        symbol: String,
-    },
     // Returns the ReferenceData of a given asset pairing
     GetReferenceData {
         // Symbol pair to query where:
@@ -107,23 +103,6 @@ pub enum QueryMsg {
 ```
 
 All queries in the contract will retrieve return the stored data from the `request()` execute function.
-
-### GetRate
-
-`Rate` is the struct that is returned when querying with `GetRate`
-
-`Rate` is defined as:
-
-```rust
-pub struct Rate {
-    // Rate of an asset relative to USD
-    pub rate: Uint64,
-    // The resolve time of the request ID
-    pub resolve_time: Uint64,
-    // The request ID where the rate was derived from
-    pub request_id: Uint64,
-}
-```
 
 ### ReferenceData
 

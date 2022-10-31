@@ -20,6 +20,11 @@ use cw_band::{
     IBC_APP_VERSION,
 };
 
+// WARNING /////////////////////////////////////////////////////////////////////////
+// THIS IS CONTRACT STILL CONTAINS UNAUDITED CODE AND IS STILL UNDER DEVELOPMENT. //
+// DO NOT USE THIS CODE IN PRODUCTION.                                            //
+////////////////////////////////////////////////////////////////////////////////////
+
 const E9: Uint64 = Uint64::new(1_000_000_000u64);
 const E18: Uint256 = Uint256::from_u128(1_000_000_000_000_000_000u128);
 
