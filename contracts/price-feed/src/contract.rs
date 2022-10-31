@@ -1,21 +1,24 @@
-use ::obi::dec::OBIDecode;
-use ::obi::enc::OBIEncode;
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    entry_point, from_slice, to_binary, Binary, Deps, DepsMut, Empty, Env, Ibc3ChannelOpenResponse,
-    IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
-    IbcChannelOpenResponse, IbcMsg, IbcOrder, IbcPacketAckMsg, IbcPacketReceiveMsg,
+    attr, from_slice, to_binary, Binary, Deps, DepsMut, Empty, Env, Ibc3ChannelOpenResponse,
+    IbcBasicResponse, IbcChannel, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
+    IbcChannelOpenResponse, IbcMsg, IbcOrder, IbcPacket, IbcPacketAckMsg, IbcPacketReceiveMsg,
     IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, MessageInfo, Response, StdError,
     StdResult, Uint256, Uint64,
 };
 use cw2::set_contract_version;
 
-use cw_band::{
-    Config, Input, OracleRequestPacketData, OracleResponsePacketData, Output, IBC_APP_VERSION,
-};
-
-use crate::error::ContractError;
+use crate::error::{ContractError, Never};
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{Rate, ReferenceData, CONFIG, ENDPOINT, RATES};
+use ::obi::dec::OBIDecode;
+use ::obi::enc::OBIEncode;
+
+use cw_band::{
+    ack_fail, ack_success, Config, Input, OracleRequestPacketData, OracleResponsePacketData,
+    Output, IBC_APP_VERSION,
+};
 
 const E9: Uint64 = Uint64::new(1_000_000_000u64);
 const E18: Uint256 = Uint256::from_u128(1_000_000_000_000_000_000u128);
@@ -62,7 +65,9 @@ pub fn execute(
     }
 }
 
-// TODO: Implement bounty logic to incentivize relayer and no one can spam request for free
+// TODO: Possible features
+// - Bounty logic to incentivize relayer and no one can spam request for free
+// - Whitelist who can call update price
 pub fn try_request(
     deps: DepsMut,
     env: Env,
@@ -71,7 +76,6 @@ pub fn try_request(
     let endpoint = ENDPOINT.load(deps.storage)?;
     let config = CONFIG.load(deps.storage)?;
 
-    // TODO: Maybe implement function for Input struct with internal check
     let raw_calldata = Input {
         symbols,
         minimum_sources: config.minimum_sources,
@@ -96,6 +100,12 @@ pub fn try_request(
         data: to_binary(&packet)?,
         timeout: IbcTimeout::with_timestamp(env.block.time.plus_seconds(60)),
     }))
+}
+
+/// this is a no-op
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: Empty) -> StdResult<Response> {
+    Ok(Response::default())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -142,44 +152,54 @@ fn query_reference_data_bulk(
         .collect()
 }
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 /// enforces ordering and versioning constraints
 pub fn ibc_channel_open(
     _deps: DepsMut,
     _env: Env,
     msg: IbcChannelOpenMsg,
-) -> StdResult<IbcChannelOpenResponse> {
-    let channel = msg.channel();
-    if channel.order != IbcOrder::Unordered {
-        return Err(StdError::generic_err("Only supports unordered channels"));
-    }
+) -> Result<IbcChannelOpenResponse, ContractError> {
+    enforce_order_and_version(msg.channel(), msg.counterparty_version())?;
 
-    // In ibcv3 we don't check the version string passed in the message
-    // and only check the counterparty version.
-    if let Some(counter_version) = msg.counterparty_version() {
-        if counter_version != IBC_APP_VERSION {
-            return Err(StdError::generic_err(format!(
-                "Counterparty version must be `{}`",
-                IBC_APP_VERSION
-            )));
-        }
-    }
-
-    // We return the version we need (which could be different than the counterparty version)
     Ok(Some(Ibc3ChannelOpenResponse {
-        version: IBC_APP_VERSION.to_string(),
+        version: msg.channel().version.clone(),
     }))
 }
 
-#[entry_point]
-/// once it's established, we create the reflect contract
+#[cfg_attr(not(feature = "library"), entry_point)]
+/// record the channel in ENDPOINT
 pub fn ibc_channel_connect(
     deps: DepsMut,
     _env: Env,
     msg: IbcChannelConnectMsg,
-) -> StdResult<IbcBasicResponse> {
+) -> Result<IbcBasicResponse, ContractError> {
+    // we need to check the counter party version in try and ack (sometimes here)
+    enforce_order_and_version(msg.channel(), msg.counterparty_version())?;
+
     ENDPOINT.save(deps.storage, &msg.channel().endpoint)?;
-    Ok(IbcBasicResponse::new())
+    Ok(IbcBasicResponse::default())
+}
+
+fn enforce_order_and_version(
+    channel: &IbcChannel,
+    counterparty_version: Option<&str>,
+) -> Result<(), ContractError> {
+    if channel.version != IBC_APP_VERSION {
+        return Err(ContractError::InvalidIbcVersion {
+            version: channel.version.clone(),
+        });
+    }
+    if let Some(version) = counterparty_version {
+        if version != IBC_APP_VERSION {
+            return Err(ContractError::InvalidIbcVersion {
+                version: version.to_string(),
+            });
+        }
+    }
+    if channel.order != IbcOrder::Unordered {
+        return Err(ContractError::OnlyUnorderedChannel {});
+    }
+    Ok(())
 }
 
 #[entry_point]
@@ -188,13 +208,7 @@ pub fn ibc_channel_close(
     _env: Env,
     _msg: IbcChannelCloseMsg,
 ) -> StdResult<IbcBasicResponse> {
-    Ok(IbcBasicResponse::new())
-}
-
-/// this is a no-op just to test how this integrates with wasmd
-#[entry_point]
-pub fn migrate(_deps: DepsMut, _env: Env, _msg: Empty) -> StdResult<Response> {
-    Ok(Response::default())
+    unimplemented!();
 }
 
 #[entry_point]
@@ -202,13 +216,27 @@ pub fn ibc_packet_receive(
     deps: DepsMut,
     _env: Env,
     msg: IbcPacketReceiveMsg,
-) -> StdResult<IbcReceiveResponse> {
+) -> Result<IbcReceiveResponse, Never> {
     let packet = msg.packet;
 
+    do_ibc_packet_receive(deps, &packet).or_else(|err| {
+        Ok(IbcReceiveResponse::new()
+            .set_ack(ack_fail(err.to_string()))
+            .add_attributes(vec![
+                attr("action", "receive"),
+                attr("success", "false"),
+                attr("error", err.to_string()),
+            ]))
+    })
+}
+
+fn do_ibc_packet_receive(
+    deps: DepsMut,
+    packet: &IbcPacket,
+) -> Result<IbcReceiveResponse, ContractError> {
     let resp: OracleResponsePacketData = from_slice(&packet.data)?;
     if resp.resolve_status.u64() != 1 {
-        // Prevent replay relay failed packet
-        return Ok(IbcReceiveResponse::new().add_attribute("action", "ibc_packet_received"));
+        return Err(ContractError::RequestNotSuccess {});
     }
     let result: Output =
         OBIDecode::try_from_slice(&resp.result).map_err(|err| StdError::ParseErr {
@@ -232,7 +260,9 @@ pub fn ibc_packet_receive(
             }
         }
     }
-    Ok(IbcReceiveResponse::new().add_attribute("action", "ibc_packet_received"))
+    Ok(IbcReceiveResponse::new()
+        .set_ack(ack_success())
+        .add_attribute("action", "ibc_packet_received"))
 }
 
 #[entry_point]
@@ -255,73 +285,5 @@ pub fn ibc_packet_timeout(
 }
 
 // TODO: Writing test
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use cosmwasm_std::testing::{mock_dependencies_with_balance, mock_env, mock_info};
-//     use cosmwasm_std::{coins, from_binary};
-
-//     #[test]
-//     fn proper_initialization() {
-//         let mut deps = mock_dependencies_with_balance(&coins(2, "token"));
-
-//         let msg = InstantiateMsg { count: 17 };
-//         let info = mock_info("creator", &coins(1000, "earth"));
-
-//         // we can just call .unwrap() to assert this was a success
-//         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-//         assert_eq!(0, res.messages.len());
-
-//         // it worked, let's query the state
-//         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
-//         let value: CountResponse = from_binary(&res).unwrap();
-//         assert_eq!(17, value.count);
-//     }
-
-//     #[test]
-//     fn increment() {
-//         let mut deps = mock_dependencies_with_balance(&coins(2, "token"));
-
-//         let msg = InstantiateMsg { count: 17 };
-//         let info = mock_info("creator", &coins(2, "token"));
-//         let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-//         // beneficiary can release it
-//         let info = mock_info("anyone", &coins(2, "token"));
-//         let msg = ExecuteMsg::Increment {};
-//         let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-//         // should increase counter by 1
-//         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
-//         let value: CountResponse = from_binary(&res).unwrap();
-//         assert_eq!(18, value.count);
-//     }
-
-//     #[test]
-//     fn reset() {
-//         let mut deps = mock_dependencies_with_balance(&coins(2, "token"));
-
-//         let msg = InstantiateMsg { count: 17 };
-//         let info = mock_info("creator", &coins(2, "token"));
-//         let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-//         // beneficiary can release it
-//         let unauth_info = mock_info("anyone", &coins(2, "token"));
-//         let msg = ExecuteMsg::Reset { count: 5 };
-//         let res = execute(deps.as_mut(), mock_env(), unauth_info, msg);
-//         match res {
-//             Err(ContractError::Unauthorized {}) => {}
-//             _ => panic!("Must return unauthorized error"),
-//         }
-
-//         // only the original creator can reset the counter
-//         let auth_info = mock_info("creator", &coins(2, "token"));
-//         let msg = ExecuteMsg::Reset { count: 5 };
-//         let _res = execute(deps.as_mut(), mock_env(), auth_info, msg).unwrap();
-
-//         // should now be 5
-//         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
-//         let value: CountResponse = from_binary(&res).unwrap();
-//         assert_eq!(5, value.count);
-//     }
-// }
+#[cfg(test)]
+mod tests {}

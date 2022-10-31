@@ -190,7 +190,6 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "obi",
- "serde",
 ]
 
 [[package]]
