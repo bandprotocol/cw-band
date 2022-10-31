@@ -76,6 +76,7 @@ pub fn try_request(
     let endpoint = ENDPOINT.load(deps.storage)?;
     let config = CONFIG.load(deps.storage)?;
 
+    // TODO: Maybe helper function in cw-band for creating OracleRequestPacketData
     let raw_calldata = Input {
         symbols,
         minimum_sources: config.minimum_sources,
@@ -95,6 +96,7 @@ pub fn try_request(
         oracle_script_id: config.oracle_script_id.into(),
         fee_limit: config.fee_limit,
     };
+
     Ok(Response::new().add_message(IbcMsg::SendPacket {
         channel_id: endpoint.channel_id,
         data: to_binary(&packet)?,

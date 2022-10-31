@@ -24,7 +24,9 @@ To generate the JSON schema files for the contract call, queries and query respo
 repo root: `/scripts/build_schemas.sh` or run `cargo schema` in the smart contract directory.
 
 ## Messages
+
 ### Instantiate message
+
 This contract accepts the following during instantiation
 
 ```rust
@@ -52,18 +54,91 @@ pub struct InstantiateMsg {
 
 ### Execute message
 
-This is a simple version allow anyone can send transaction to update price immediately
+The contract contains the following execute messages:
 
-- Request
+```rust
+pub enum ExecuteMsg {
+    Request { symbols: Vec<String> },
+}
+```
+
+Where `request()` takes a set of symbols to request on BandChain using the specified parameters contained in `Config`and
+upon receiving a packet from BandChain, will store the returned data which can be queried.
+
+An example message can be seen below:
 
 ```json
 {
-  "request": {
-    "symbols": ["BTC", "ETH", "BAND"]
-  }
+    "request": {
+        "symbol": [
+            "BTC",
+            "ETH",
+            "BAND"
+        ]
+    }
 }
 ```
 
 ### Query message
 
-TODO
+The contract contains the following query messages:
+
+```rust
+pub enum QueryMsg {
+    // Returns the RefData of a given symbol
+    GetRate {
+        // Symbol to query
+        symbol: String,
+    },
+    // Returns the ReferenceData of a given asset pairing
+    GetReferenceData {
+        // Symbol pair to query where:
+        // symbol_pair := (base_symbol, quote_symbol)
+        // e.g. BTC/USD ≡ ("BTC", "USD")
+        symbol_pair: (String, String),
+    },
+    // Returns the ReferenceDatas of the given asset pairings
+    GetReferenceDataBulk {
+        // Vector of Symbol pair to query
+        // e.g. <BTC/USD ETH/USD, BAND/BTC> ≡ <("BTC", "USD"), ("ETH", "USD"), ("BAND", "BTC")>
+        symbol_pairs: Vec<(String, String)>,
+    },
+}
+```
+
+All queries in the contract will retrieve return the stored data from the `request()` execute function.
+
+### GetRate
+
+`Rate` is the struct that is returned when querying with `GetRate`
+
+`Rate` is defined as:
+
+```rust
+pub struct Rate {
+    // Rate of an asset relative to USD
+    pub rate: Uint64,
+    // The resolve time of the request ID
+    pub resolve_time: Uint64,
+    // The request ID where the rate was derived from
+    pub request_id: Uint64,
+}
+```
+
+### ReferenceData
+
+`ReferenceData` is the struct that is returned when querying with `GetReferenceData` or `GetReferenceDataBulk` where the
+bulk variant returns `Vec<ReferenceData>`
+
+`ReferenceData` is defined as:
+
+```rust
+pub struct ReferenceData {
+    // Pair rate e.g. rate of BTC/USD
+    pub rate: Uint256,
+    // Unix time of when the base asset was last updated. e.g. Last update time of BTC in Unix time
+    pub last_updated_base: Uint64,
+    // Unix time of when the quote asset was last updated. e.g. Last update time of USD in Unix time
+    pub last_updated_quote: Uint64,
+}
+```
