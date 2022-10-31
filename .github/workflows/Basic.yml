@@ -8,7 +8,6 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
-    working-directory: contracts/price-feed
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -23,6 +22,7 @@ jobs:
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
+        working-directory: contracts/price-feed
         with:
           command: unit-test
           args: --locked
@@ -31,6 +31,7 @@ jobs:
 
       - name: Compile WASM contract
         uses: actions-rs/cargo@v1
+        working-directory: contracts/price-feed
         with:
           command: wasm
           args: --locked
