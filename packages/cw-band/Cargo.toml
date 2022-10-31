@@ -1,6 +1,11 @@
 [package]
+authors = ["Band Protocol <connect@bandprotocol.com>"]
+description = "The helper library for building CosmWasm smart contracts to interact with Bandchain"
 edition = "2021"
+license = "Apache-2.0"
 name = "cw-band"
+readme = "README.md"
+repository = "https://github.com/bandprotocol/cw-band/tree/main/packages/cw-band"
 version = "0.1.0-alpha.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
