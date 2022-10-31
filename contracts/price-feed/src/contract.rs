@@ -1,7 +1,7 @@
-#[cfg(not(feature = "library"))]
-use cosmwasm_std::entry_point;
+use ::obi::dec::OBIDecode;
+use ::obi::enc::OBIEncode;
 use cosmwasm_std::{
-    from_slice, to_binary, Binary, Deps, DepsMut, Empty, Env, Ibc3ChannelOpenResponse,
+    entry_point, from_slice, to_binary, Binary, Deps, DepsMut, Empty, Env, Ibc3ChannelOpenResponse,
     IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
     IbcChannelOpenResponse, IbcMsg, IbcOrder, IbcPacketAckMsg, IbcPacketReceiveMsg,
     IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, MessageInfo, Response, StdError,
@@ -9,20 +9,18 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 
-use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::{Rate, ReferenceData, CONFIG, ENDPOINT, RATES};
-use ::obi::dec::OBIDecode;
-use ::obi::enc::OBIEncode;
-
 use cw_band::{
     Config, Input, OracleRequestPacketData, OracleResponsePacketData, Output, IBC_APP_VERSION,
 };
 
+use crate::error::ContractError;
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::state::{Rate, ReferenceData, CONFIG, ENDPOINT, RATES};
+
 const E9: Uint64 = Uint64::new(1_000_000_000u64);
 const E18: Uint256 = Uint256::from_u128(1_000_000_000_000_000_000u128);
 
-// version info for migration info
+// Version info for migration
 const CONTRACT_NAME: &str = "crates.io:band-ibc-price-feed";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -73,6 +71,7 @@ pub fn try_request(
     let endpoint = ENDPOINT.load(deps.storage)?;
     let config = CONFIG.load(deps.storage)?;
 
+    // TODO: Maybe implement function for Input struct with internal check
     let raw_calldata = Input {
         symbols,
         minimum_sources: config.minimum_sources,

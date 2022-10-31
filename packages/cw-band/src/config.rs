@@ -1,3 +1,4 @@
+use crate::packet::OracleRequestPacketData;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Coin, Uint64};
 
