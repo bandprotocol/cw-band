@@ -8,9 +8,6 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./contracts/price-feed
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -26,18 +23,10 @@ jobs:
       - name: Run unit tests
         uses: actions-rs/cargo@v1
         with:
-          command: unit-test
-          args: --locked
+          command: test
+          args: --lib
         env:
           RUST_BACKTRACE: 1
-
-      - name: Compile WASM contract
-        uses: actions-rs/cargo@v1
-        with:
-          command: wasm
-          args: --locked
-        env:
-          RUSTFLAGS: "-C link-arg=-s"
 
   lints:
     name: Lints

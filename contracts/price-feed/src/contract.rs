@@ -87,12 +87,12 @@ pub fn try_request(
 
     let packet = OracleRequestPacketData {
         client_id: config.client_id,
-        ask_count: config.ask_count.into(),
-        min_count: config.min_count.into(),
+        oracle_script_id: config.oracle_script_id,
         calldata: raw_calldata,
-        prepare_gas: config.prepare_gas.into(),
-        execute_gas: config.execute_gas.into(),
-        oracle_script_id: config.oracle_script_id.into(),
+        ask_count: config.ask_count,
+        min_count: config.min_count,
+        prepare_gas: config.prepare_gas,
+        execute_gas: config.execute_gas,
         fee_limit: config.fee_limit,
     };
     Ok(Response::new().add_message(IbcMsg::SendPacket {
