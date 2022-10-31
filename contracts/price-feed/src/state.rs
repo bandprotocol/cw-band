@@ -1,13 +1,27 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::IbcEndpoint;
-use cosmwasm_std::{Uint256, Uint64};
-use cw_band::Config;
+use cosmwasm_std::{Coin, Uint256, Uint64};
 use cw_storage_plus::{Item, Map};
 
 #[cw_serde]
+pub struct Config {
+    pub client_id: String,
+    pub oracle_script_id: Uint64,
+    pub ask_count: Uint64,
+    pub min_count: Uint64,
+    pub fee_limit: Vec<Coin>,
+    pub prepare_gas: Uint64,
+    pub execute_gas: Uint64,
+    pub minimum_sources: u8,
+}
+
+#[cw_serde]
 pub struct Rate {
+    // Rate of an asset relative to USD
     pub rate: Uint64,
+    // The resolve time of the request ID
     pub resolve_time: Uint64,
+    // The request ID where the rate was derived from
     pub request_id: Uint64,
 }
 
@@ -25,7 +39,7 @@ pub const RATES: Map<&str, Rate> = Map::new("rates");
 
 pub const ENDPOINT: Item<IbcEndpoint> = Item::new("endpoint");
 
-pub const CONFIG: Item<Config> = Item::new("config");
+pub const BAND_CONFIG: Item<Config> = Item::new("config");
 
 #[cw_serde]
 pub struct ReferenceData {

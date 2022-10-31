@@ -11,19 +11,19 @@ use cw2::set_contract_version;
 
 use crate::error::{ContractError, Never};
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::{Rate, ReferenceData, CONFIG, ENDPOINT, RATES};
+use crate::state::{Config, Rate, ReferenceData, BAND_CONFIG, ENDPOINT, RATES};
 use ::obi::dec::OBIDecode;
 use ::obi::enc::OBIEncode;
 
 use cw_band::{
-    ack_fail, ack_success, Config, Input, OracleRequestPacketData, OracleResponsePacketData,
-    Output, IBC_APP_VERSION,
+    ack_fail, ack_success, Input, OracleRequestPacketData, OracleResponsePacketData, Output,
+    IBC_APP_VERSION,
 };
 
 const E9: Uint64 = Uint64::new(1_000_000_000u64);
 const E18: Uint256 = Uint256::from_u128(1_000_000_000_000_000_000u128);
 
-// version info for migration info
+// Version info for migration
 const CONTRACT_NAME: &str = "crates.io:band-ibc-price-feed";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -36,7 +36,7 @@ pub fn instantiate(
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    CONFIG.save(
+    BAND_CONFIG.save(
         deps.storage,
         &Config {
             client_id: msg.client_id,
@@ -74,8 +74,9 @@ pub fn try_request(
     symbols: Vec<String>,
 ) -> Result<Response, ContractError> {
     let endpoint = ENDPOINT.load(deps.storage)?;
-    let config = CONFIG.load(deps.storage)?;
+    let config = BAND_CONFIG.load(deps.storage)?;
 
+    // TODO: Maybe helper function in cw-band for creating OracleRequestPacketData
     let raw_calldata = Input {
         symbols,
         minimum_sources: config.minimum_sources,
@@ -95,6 +96,7 @@ pub fn try_request(
         execute_gas: config.execute_gas,
         fee_limit: config.fee_limit,
     };
+
     Ok(Response::new().add_message(IbcMsg::SendPacket {
         channel_id: endpoint.channel_id,
         data: to_binary(&packet)?,
