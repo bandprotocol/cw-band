@@ -1,4 +1,8 @@
-# CosmWasm <> Band integration
+# cw-band
+
+**Disclaimer** This library is in a very early stage of development. Please don't use it in production.
+
+This repo contains `packages` and `contracts` folder to provide a libray to build cosmwasm smart contract to interact with BandChain.
 
 ## Packages
 
