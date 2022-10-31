@@ -1,7 +1,7 @@
-use cosmwasm_std::{Binary, Coin, Uint64};
-use serde::{Deserialize, Serialize};
+use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{to_binary, Binary, Coin, Uint64};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[cw_serde]
 pub struct OracleRequestPacketData {
     pub client_id: String,
     pub oracle_script_id: Uint64,
@@ -13,7 +13,7 @@ pub struct OracleRequestPacketData {
     pub execute_gas: Uint64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[cw_serde]
 pub struct OracleResponsePacketData {
     pub client_id: String,
     pub request_id: Uint64,
@@ -24,17 +24,25 @@ pub struct OracleResponsePacketData {
     pub result: Binary,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub enum AcknowledgementMsg<S> {
-    Result(S),
-    /// An error type that every custom error created by contract developers can be converted to.
-    /// This could potientially have more structure, but String is the easiest.
-    #[serde(rename = "error")]
-    Err(String),
+#[cw_serde]
+pub enum AcknowledgementMsg {
+    Result(Binary),
+    Error(String),
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+// create a serialized success message
+pub fn ack_success() -> Binary {
+    let res = AcknowledgementMsg::Result(b"1".into());
+    to_binary(&res).unwrap()
+}
+
+// create a serialized error message
+pub fn ack_fail(err: String) -> Binary {
+    let res = AcknowledgementMsg::Error(err);
+    to_binary(&res).unwrap()
+}
+
+#[cw_serde]
 pub struct BandAcknowledgement {
     pub request_id: Uint64,
 }

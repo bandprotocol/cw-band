@@ -15,7 +15,6 @@ pub struct InstantiateMsg {
     pub minimum_sources: u8,
 }
 
-// TODO: Add more message who can request new price (whitelist requester)
 #[cw_serde]
 pub enum ExecuteMsg {
     Request { symbols: Vec<String> },
