@@ -12,5 +12,6 @@ pub struct Config {
     pub prepare_gas: Uint64,
     pub execute_gas: Uint64,
 
+    // TODO: Should this be in config?
     pub minimum_sources: u8,
 }
