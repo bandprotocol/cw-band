@@ -1,5 +1,11 @@
 # Connect price feed to BandChain testnet
 
+## Supported symbols
+
+You can request 4 symbols on [oracle script id: 360](https://laozi-testnet6.cosmoscan.io/oracle-script/360)
+
+- BTC, ETH, USDT, BAND
+
 ## Config example
 
 ```
