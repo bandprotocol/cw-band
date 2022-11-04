@@ -237,7 +237,7 @@ fn do_ibc_packet_receive(
     packet: &IbcPacket,
 ) -> Result<IbcReceiveResponse, ContractError> {
     let resp: OracleResponsePacketData = from_slice(&packet.data)?;
-    if resp.resolve_status.u64() != 1 {
+    if resp.resolve_status != "RESOLVE_STATUS_SUCCESS" {
         return Err(ContractError::RequestNotSuccess {});
     }
     let result: Output =
