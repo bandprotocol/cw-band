@@ -65,5 +65,6 @@ We provide sample contracts that either implement or consume these packages to b
 - Price feed
   - Update new rate by request data to BandChain via IBC
   - Allow other contracts to query data from this contract
+  - You can learn more detail in this [document](https://github.com/bandprotocol/cw-band/blob/add-readme/docs/Overview.md)
 - [TODO] Consumer 
   - Query price from price feed contract
