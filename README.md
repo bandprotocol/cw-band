@@ -1,70 +1,40 @@
-# cw-band
+# CW-Band
 
 **Disclaimer** This library is in a very early stage of development. Please don't use it in production.
 
 This repo contains `packages` and `contracts` folder to provide a library to build cosmwasm smart contract to interact with BandChain.
 
-## Packages
+---
 
-Contain common data type that specific to BandChain oracle packet and some common input/output to request data to BandChain.
+## Table Of Contents
+- [Project structure](#Project-Structure)
+- [BandChain - Oracle Scripts & Data Sources](./docs/bandchain_oracle_scripts_&_data_sources.md)
+- [How to request data from BandChain via IBC](./docs/how_to_request_data_from_bandchain_via_ibc.md)
+- [Packages - cw-band](./docs/packages_cw_band.md)
+- [Contract example - Price feed](./docs/contracts_price_feed.md)
+- [TODO] [Contract example - Consumer](./docs/contracts_consumer.md)
+- [Setup relayer](./docs/setup_relayer.md)
 
-### OracleRequestPacketData
- - This is the type of MsgRequestData on BandChain. You have to specify each field of the mesages based on your requests.
+---
+## Project Structure
 
-```
-pub struct OracleRequestPacketData {
-    pub client_id: String, // A unique ID for the oracle request.
-    pub oracle_script_id: Uint64, // The oracle script ID to query.
-    pub calldata: Vec<u8>, // Bytes of input data of oracle script.
-    pub ask_count: Uint64, // The number of validators that are requested to respond.
-    pub min_count: Uint64, // The minimum number of validators that need to respond.
-    pub fee_limit: Vec<Coin>, // The maximum amount of band in uband to be paid to the data source providers.
-    pub prepare_gas: Uint64, // Amount of gas to pay to prepare raw requests.
-    pub execute_gas: Uint64, // Minimum number of sources required to return a successful response.
-}
-```
+### Docs
 
-### AcknowledgementMsg
- - AcknowledgeMsg of IBC will be either Result or Error. Result will be returned if the status of request is successful, otherwise, it'll be Error.
+All documents related to cw-band will be placed in this folder.
+### Packages
 
-```
-pub enum AcknowledgementMsg {
-    Result(Binary),
-    Error(String),
-}
-```
+This folder contains libraries for smart contracts to use. These libraries will help make the process of requesting data from BandChain easier.
 
-### BandAcknowledgement
- - The acknowledgement data that BandChain will return in the Result of AcknowledgementMsg. 
+  - `cw-band`: This library will provide all necessary data types that you will need to use when you want to request data from BandChain. You can look more into detail [here](./docs/packages_data_types.md)
 
-```
-pub struct BandAcknowledgement {
-    pub request_id: Uint64, // Request_id of the request.
-}
-```
-
-### OracleResponsePacketData
- - The packet that BandChain will send to other chain after the request is resolved.
-
-```
-pub struct OracleResponsePacketData {
-    pub client_id: String, // A unique ID for the oracle request (same value with client_id of the request).
-    pub request_id: Uint64, // Request_id of the request.
-    pub ans_count: Uint64, // The number of validators that are requested to respond.
-    pub request_time: Uint64, // Timestamp of the request.
-    pub resolve_time: Uint64, // Timestamp of resolving the request
-    pub resolve_status: String, // Resolve status
-    pub result: Binary, // Bytes of output from oracle script.
-}
-```
-
-## Contracts
+### Contracts
 
 We provide sample contracts that either implement or consume these packages to both provide examples, and provide a basis for code you can extend for more custom contacts.
 
-- Price feed
-  - Update new rate by request data to BandChain via IBC
-  - Allow other contracts to query data from this contract
-  - You can learn more detail in this [document](https://github.com/bandprotocol/cw-band/blob/add-readme/docs/Overview.md)
-- [TODO] Consumer 
-  - Query price from price feed contract
+  - `Price feed`: The example of contract that able to request data from BandChain by using cw-band package and allow other contracts to query the data. You can learn more detail in this [document](./docs/contracts_price_feed.md)
+  - [TODO] `Consumer`: The example of contract that query price from price feed contract. You can learn more detail in this [document](./docs/contracts_consumer.md)
+
+### Scripts
+
+We provide useful script such as building contract command, contract deployment in this folder.
+
