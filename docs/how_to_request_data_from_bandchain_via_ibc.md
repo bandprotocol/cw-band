@@ -1,4 +1,4 @@
-# How to Request Data on BandChain from a CosmWasm contract via IBC
+# How to Request Data on BandChain via IBC
 
 In order to request data from BandChain’s Oracle via a CosmWasm contract, your contract will need to implement the functions listed below:
 
@@ -20,9 +20,9 @@ The behavior of the functions mentioned can be simplified into 2 stages of the I
 
 ## Create Channel
 
-During this stage, a channel between your contract and our oracle module on BandChain needs to be created in order to relay an IBC message via a relayer. In order to do that, 2 entry points needs to be provided.
+During this stage, a channel between your contract and our oracle module on BandChain needs to be created to relay an IBC message via a relayer. To do that, 2 entry points need to be provided.
 
-**Note**: As creating a channel can be started from either the contract or the oracle; A function that accept messages regardless of the initiator side needs to be provided.
+**Note**: As creating a channel can be started from either the contract or the oracle; A function that accepts messages regardless of the initiator side needs to be provided.
 
 ### IBC Channel Open
 
@@ -40,13 +40,12 @@ pub fn ibc_channel_open(
     // ...
 
     Ok(Some(Ibc3ChannelOpenResponse {
-        version: IBC_APP_VERSION.to_string(),
+        version: msg.channel().version.clone(),
     }))
-
 }
 ```
 
-This function should verify the order type of channel and the counterparty’s version and respond its own version to the counterparty’s module.
+This function should verify the order type of the channel and the counterparty’s version and respond to its version to the counterparty’s module.
 
 ### IBC Channel Connect
 
@@ -58,12 +57,12 @@ pub fn ibc_channel_connect(
     deps: DepsMut,
     _env: Env,
     msg: IbcChannelConnectMsg,
-) -> StdResult<IbcBasicResponse> {
+) -> Result<IbcBasicResponse, ContractError> {
 
     // logic to store channel_id for sending future IBC messages
     // ...
 
-    Ok(IbcBasicResponse::new())
+    Ok(IbcBasicResponse::default())
 }
 ```
 
@@ -73,8 +72,8 @@ This function is called along with the channel detail so that the `channel_id` o
 
 In order to send an IBC message to request data from BandChain, cosmwasm_std::IbcMsg::SendPacket needs to be used with the following three parameters:
 
-- channel_id: The channel_id that you want to send packet to
-- data: The binary data of the packet that you want to send contained in a OracleRequestPacketData structure.
+- channel_id: The channel_id that you want to send a packet to
+- data: The binary data of the packet that you want to send contained in an OracleRequestPacketData structure.
 - timeout: The timeout timestamp.
 
 Where the structure for SendPacket and OracleRequestPacketData are shown below:
@@ -100,32 +99,22 @@ pub struct OracleRequestPacketData {
 }
 ```
 
-As the message have already been sent, three callback functions will need to be provided to accept the three outgoing messages from Oracle: `IbcPacketAckMsg`, `IbcPacketTimeoutMsg` and `IbcPacketReceiveMsg`.
+As the message has already been sent, three callback functions will need to be provided to accept the three outgoing messages from Oracle: `IbcPacketAckMsg`, `IbcPacketTimeoutMsg` and `IbcPacketReceiveMsg`.
 
 ### IBCPacketAckMsg
 
 ```rust
 #[entry_point]
 pub fn ibc_packet_ack(
-    deps: DepsMut,
+    _deps: DepsMut,
     _env: Env,
-    msg: IbcPacketAckMsg,
+    _msg: IbcPacketAckMsg,
 ) -> StdResult<IbcBasicResponse> {
-
-    let res: AcknowledgementMsg<Binary> = from_slice(&msg.acknowledgement.data)?;
-    match res {
-        AcknowledgementMsg::Result(bz) => {
-            let ack: BandAcknowledgement = from_slice(&bz)?;
-            Ok(IbcBasicResponse::new().add_attribute("action", "ibc_packet_ack"))
-        }
-        AcknowledgementMsg::Err(err) => Err(StdError::GenericErr {
-            msg: format!("Fail ack err: {:}", err),
-        }),
-    }
+    Ok(IbcBasicResponse::new().add_attribute("action", "ibc_packet_ack"))
 }
 ```
 
-The oracle will send an acknowledgement message with the corresponding request_id on BandChain if the requested can be processed so that the sender’s side can process the data as needed.
+The oracle will send an acknowledgment message with the corresponding request_id on BandChain if the request can be processed so that the sender’s side can process the data as needed.
 
 ### IBCPacketReceiveMsg
 
@@ -135,28 +124,57 @@ pub fn ibc_packet_receive(
     deps: DepsMut,
     _env: Env,
     msg: IbcPacketReceiveMsg,
-) -> StdResult<IbcReceiveResponse> {
+) -> Result<IbcReceiveResponse, Never> {
     let packet = msg.packet;
 
-    let resp: OracleResponsePacketData = from_slice(&packet.data)?;
-    if resp.resolve_status != 1 {
-        return Err(StdError::GenericErr {
-            msg: "Resolve failed".into(),
-        });
-    }
+    do_ibc_packet_receive(deps, &packet).or_else(|err| {
+        Ok(IbcReceiveResponse::new()
+            .set_ack(ack_fail(err.to_string()))
+            .add_attributes(vec![
+                attr("action", "receive"),
+                attr("success", "false"),
+                attr("error", err.to_string()),
+            ]))
+    })
+}
 
-    let symbols = REQUESTS.load(deps.storage, resp.request_id.into())?;
-    let result: BandResult =
+fn do_ibc_packet_receive(
+    deps: DepsMut,
+    packet: &IbcPacket,
+) -> Result<IbcReceiveResponse, ContractError> {
+    let resp: OracleResponsePacketData = from_slice(&packet.data)?;
+    if resp.resolve_status != "RESOLVE_STATUS_SUCCESS" {
+        return Err(ContractError::RequestNotSuccess {});
+    }
+    let result: Output =
         OBIDecode::try_from_slice(&resp.result).map_err(|err| StdError::ParseErr {
             target_type: "Oracle response packet".into(),
             msg: err.to_string(),
         })?;
 
-    Ok(IbcReceiveResponse::new().set_ack(vec![1]))
+    for r in result.responses {
+        if r.response_code == 0 {
+            let rate = RATES.may_load(deps.storage, &r.symbol)?;
+            if rate.is_none() || rate.unwrap().resolve_time < resp.resolve_time {
+                RATES.save(
+                    deps.storage,
+                    &r.symbol,
+                    &Rate {
+                        rate: Uint64::from(r.rate),
+                        resolve_time: resp.resolve_time,
+                        request_id: resp.request_id,
+                    },
+                )?;
+            }
+        }
+    }
+    Ok(IbcReceiveResponse::new()
+        .set_ack(ack_success())
+        .add_attribute("action", "ibc_packet_received"))
 }
 ```
 
-After the oracle finishs your request, an OracleResponsePacketData packet will be sent to this function in your contract. The output of the oracle script that you requested will be contained in the result field.
+After BandChain finishes your request, an OracleResponsePacketData packet will be sent to this function in your contract. The output of the oracle script that you requested will be contained in the result field.
 
 ```rust
 pub struct OracleResponsePacketData {
@@ -183,4 +201,4 @@ pub fn ibc_packet_timeout(
 }
 ```
 
-In the case where an acknowledgement message from the destination module hasn’t being received, the relayers will call this function. Requests get that timeout can be handled within this function. e.g. emitting the event or marking request status.
+In the case where an acknowledgment message from the destination module hasn’t been received, the relayers will call this function. Requests get that timeout can be handled within this function. e.g. emitting the event or marking request status.

@@ -1,3 +1,3 @@
-# Contracts - consumer
+# Contract example - Consumer
 
 TODO

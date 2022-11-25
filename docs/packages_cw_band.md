@@ -3,7 +3,7 @@
 Contain common data type that specific to BandChain oracle packet and some common input/output to request data to BandChain.
 
 ## OracleRequestPacketData
- - This is the type of MsgRequestData on BandChain. You have to specify each field of the mesages based on your requests.
+ - This is the type of MsgRequestData on BandChain. You have to specify each field of the messages based on your requests.
 
 ```
 pub struct OracleRequestPacketData {
@@ -19,7 +19,7 @@ pub struct OracleRequestPacketData {
 ```
 
 ## AcknowledgementMsg
- - AcknowledgeMsg of IBC will be either Result or Error. Result will be returned if the status of request is successful, otherwise, it'll be Error.
+ - AcknowledgeMsg of IBC will be either Result or Error. The result will be returned if the status of the request is successful, otherwise, it'll be Error.
 
 ```
 pub enum AcknowledgementMsg {
@@ -29,7 +29,7 @@ pub enum AcknowledgementMsg {
 ```
 
 ## BandAcknowledgement
- - The acknowledgement data that BandChain will return in the Result of AcknowledgementMsg. 
+The acknowledgment data that BandChain will return in the Result of AcknowledgementMsg. 
 
 ```
 pub struct BandAcknowledgement {
@@ -38,7 +38,7 @@ pub struct BandAcknowledgement {
 ```
 
 ## OracleResponsePacketData
- - The packet that BandChain will send to other chain after the request is resolved.
+ - The packet that BandChain will send to another chain after the request is resolved.
 
 ```
 pub struct OracleResponsePacketData {
