@@ -11,7 +11,9 @@ use crate::error::{ContractError, Never};
 use crate::state::{Rate, ENDPOINT, RATES};
 use obi::dec::OBIDecode;
 
-use cw_band::{ack_fail, ack_success, OracleResponsePacketData, Output, IBC_APP_VERSION};
+use cw_band::{
+    ack_fail, ack_success, OracleResponsePacketData, Output, ResolveStatus, IBC_APP_VERSION,
+};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 /// enforces ordering and versioning constraints
@@ -96,7 +98,7 @@ fn do_ibc_packet_receive(
     packet: &IbcPacket,
 ) -> Result<IbcReceiveResponse, ContractError> {
     let resp: OracleResponsePacketData = from_slice(&packet.data)?;
-    if resp.resolve_status != "RESOLVE_STATUS_SUCCESS" {
+    if resp.resolve_status != ResolveStatus::Success {
         return Err(ContractError::RequestNotSuccess {});
     }
     let result: Output =

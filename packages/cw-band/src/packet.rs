@@ -20,8 +20,20 @@ pub struct OracleResponsePacketData {
     pub ans_count: Uint64,
     pub request_time: Uint64,
     pub resolve_time: Uint64,
-    pub resolve_status: String,
+    pub resolve_status: ResolveStatus,
     pub result: Binary,
+}
+
+#[cw_serde]
+pub enum ResolveStatus {
+    #[serde(rename = "RESOLVE_STATUS_OPEN_UNSPECIFIED")]
+    Open,
+    #[serde(rename = "RESOLVE_STATUS_SUCCESS")]
+    Success,
+    #[serde(rename = "RESOLVE_STATUS_FAILURE")]
+    Failure,
+    #[serde(rename = "RESOLVE_STATUS_EXPIRED")]
+    Expired,
 }
 
 #[cw_serde]
@@ -45,4 +57,19 @@ pub fn ack_fail(err: String) -> Binary {
 #[cw_serde]
 pub struct BandAcknowledgement {
     pub request_id: Uint64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use base64::decode;
+    use cosmwasm_std::from_slice;
+
+    #[test]
+    fn test_deserialize_response_packet() {
+        let packet = from_slice::<OracleResponsePacketData>(&decode("eyJhbnNfY291bnQiOiIxNiIsImNsaWVudF9pZCI6IjQxMTg2MTEiLCJyZXF1ZXN0X2lkIjoiMTM4NTk4OTkiLCJyZXF1ZXN0X3RpbWUiOiIxNjY5NzkwNDQ1IiwicmVzb2x2ZV9zdGF0dXMiOiJSRVNPTFZFX1NUQVRVU19TVUNDRVNTIiwicmVzb2x2ZV90aW1lIjoiMTY2OTc5MDQ1MSIsInJlc3VsdCI6IkFBQUFCQUFBQUFBdld4dWdBQUFBQW1jZHVIQUFBQUFBQTlzK1h3QUFBQUFQTHdtRyJ9").unwrap()).unwrap();
+
+        assert_eq!(packet.resolve_status, ResolveStatus::Success);
+        assert_eq!(packet.request_id, Uint64::from(13859899u64))
+    }
 }
