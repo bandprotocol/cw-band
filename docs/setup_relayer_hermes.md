@@ -24,11 +24,10 @@ cd hermes
 git checkout v1.1.0-band
 
 # Build Hermes
-cd relayer-cli
 cargo build --release
 ```
 
-You should find Hermes binary at hermes/target/debug/
+You should find Hermes binary at target/release/
 
 ### Option 2.2: Download from Github (Not Recommended)
 
