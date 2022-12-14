@@ -3,9 +3,10 @@
 Contain common data type that specific to BandChain oracle packet and some common input/output to request data to BandChain.
 
 ## OracleRequestPacketData
- - This is the type of MsgRequestData on BandChain. You have to specify each field of the messages based on your requests.
 
-```
+- This is the type of MsgRequestData on BandChain. You have to specify each field of the messages based on your requests.
+
+```rust
 pub struct OracleRequestPacketData {
     pub client_id: String, // A unique ID for the oracle request.
     pub oracle_script_id: Uint64, // The oracle script ID to query.
@@ -19,9 +20,10 @@ pub struct OracleRequestPacketData {
 ```
 
 ## AcknowledgementMsg
- - AcknowledgeMsg of IBC will be either Result or Error. The result will be returned if the status of the request is successful, otherwise, it'll be Error.
 
-```
+- AcknowledgeMsg of IBC will be either Result or Error. The result will be returned if the status of the request is successful, otherwise, it'll be Error.
+
+```rust
 pub enum AcknowledgementMsg {
     Result(Binary),
     Error(String),
@@ -29,18 +31,20 @@ pub enum AcknowledgementMsg {
 ```
 
 ## BandAcknowledgement
-The acknowledgment data that BandChain will return in the Result of AcknowledgementMsg. 
 
-```
+The acknowledgment data that BandChain will return in the Result of AcknowledgementMsg.
+
+```rust
 pub struct BandAcknowledgement {
     pub request_id: Uint64, // Request_id of the request.
 }
 ```
 
 ## OracleResponsePacketData
- - The packet that BandChain will send to another chain after the request is resolved.
 
-```
+- The packet that BandChain will send to another chain after the request is resolved.
+
+```rust
 pub struct OracleResponsePacketData {
     pub client_id: String, // A unique ID for the oracle request (same value with client_id of the request).
     pub request_id: Uint64, // Request_id of the request.

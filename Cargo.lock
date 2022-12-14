@@ -185,7 +185,7 @@ dependencies = [
 
 [[package]]
 name = "cw-band"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 dependencies = [
  "base64",
  "cosmwasm-schema",
