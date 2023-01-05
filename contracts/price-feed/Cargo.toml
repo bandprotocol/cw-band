@@ -1,5 +1,5 @@
 [package]
-authors = ["taobun <bun@bandprotocol.com>"]
+authors = ["Band Protocol <connect@bandprotocol.com>"]
 description = "Price feed contract store price data from BandChain"
 edition = "2021"
 name = "price-feed"
