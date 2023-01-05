@@ -87,7 +87,7 @@ pub fn try_request(
     let packet = OracleRequestPacketData {
         client_id: config.client_id,
         oracle_script_id: config.oracle_script_id,
-        calldata: raw_calldata,
+        calldata: Binary(raw_calldata),
         ask_count: config.ask_count,
         min_count: config.min_count,
         prepare_gas: config.prepare_gas,
