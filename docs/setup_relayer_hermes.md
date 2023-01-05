@@ -11,7 +11,7 @@ You can start with this [example config file](https://github.com/bandprotocol/he
 As for most parts of the config, you can see their description [here](https://hermes.informal.systems/documentation/configuration/description.html)](https://hermes.informal.systems/documentation/configuration/description.html)
 
 For the 'ignore_port_channel' config which is the one that we implemented, it is used to specify which destination port-channel pairs that we want to ignore their acknowledge packets
-e.g. `ignore_port_channel = [{ channel_id = 'channel-64', port_id = 'oracle'}]` means we want to ignore acknowledgment packet that its destination has channel_id 'channel-64' and port_id 'oracle'
+e.g. `ignore_port_channel = [{ channel_id = 'channel-64', port_id = 'oracle'}]` means we want to ignore acknowledgement packet that its destination has channel_id 'channel-64' and port_id 'oracle'
 
 ## Step 2: Build Hermes binary
 

@@ -37,25 +37,25 @@ pub enum ResolveStatus {
 }
 
 #[cw_serde]
-pub enum AcknowledgmentMsg {
+pub enum AcknowledgementMsg {
     Result(Binary),
     Error(String),
 }
 
 // create a serialized success message
 pub fn ack_success() -> Binary {
-    let res = AcknowledgmentMsg::Result(b"1".into());
+    let res = AcknowledgementMsg::Result(b"1".into());
     to_binary(&res).unwrap()
 }
 
 // create a serialized error message
 pub fn ack_fail(err: String) -> Binary {
-    let res = AcknowledgmentMsg::Error(err);
+    let res = AcknowledgementMsg::Error(err);
     to_binary(&res).unwrap()
 }
 
 #[cw_serde]
-pub struct BandAcknowledgment {
+pub struct BandAcknowledgement {
     pub request_id: Uint64,
 }
 

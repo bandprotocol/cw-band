@@ -114,7 +114,7 @@ pub fn ibc_packet_ack(
 }
 ```
 
-The oracle will send an acknowledgment message with the corresponding request_id on BandChain if the request can be processed so that the sender’s side can process the data as needed.
+The oracle will send an acknowledgement message with the corresponding request_id on BandChain if the request can be processed so that the sender’s side can process the data as needed.
 
 ### IBCPacketReceiveMsg
 
@@ -201,4 +201,4 @@ pub fn ibc_packet_timeout(
 }
 ```
 
-In the case where an acknowledgment message from the destination module hasn’t been received, the relayers will call this function. Requests get that timeout can be handled within this function. e.g. emitting the event or marking request status.
+In the case where an acknowledgement message from the destination module hasn’t been received, the relayers will call this function. Requests get that timeout can be handled within this function. e.g. emitting the event or marking request status.
