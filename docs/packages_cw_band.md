@@ -19,23 +19,23 @@ pub struct OracleRequestPacketData {
 }
 ```
 
-## AcknowledgmentMsg
+## AcknowledgementMsg
 
 - AcknowledgeMsg of IBC will be either Result or Error. The result will be returned if the status of the request is successful, otherwise, it'll be Error.
 
 ```rust
-pub enum AcknowledgmentMsg {
+pub enum AcknowledgementMsg {
     Result(Binary),
     Error(String),
 }
 ```
 
-## BandAcknowledgment
+## BandAcknowledgement
 
-The acknowledgment data that BandChain will return in the Result of AcknowledgmentMsg.
+The acknowledgement data that BandChain will return in the Result of AcknowledgementMsg.
 
 ```rust
-pub struct BandAcknowledgment {
+pub struct BandAcknowledgement {
     pub request_id: Uint64, // Request_id of the request.
 }
 ```
