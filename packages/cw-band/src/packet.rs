@@ -64,7 +64,6 @@ mod tests {
     use super::*;
     use base64::decode;
     use cosmwasm_std::from_slice;
-    use hex;
 
     #[test]
     fn test_serialize_request_packet() {
