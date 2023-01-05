@@ -1,4 +1,4 @@
-# Connect price feed to BandChain testnet
+# Contract example - Price Feed
 
 ## Supported symbols
 

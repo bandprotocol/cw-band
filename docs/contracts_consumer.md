@@ -1,0 +1,3 @@
+# Contract example - Consumer
+
+TODO
