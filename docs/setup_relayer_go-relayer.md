@@ -50,6 +50,8 @@ For band-laozi-testnet6, you can use this config file.
 }
 ```
 
+You have to add a config file for every chains that you want to relay.
+
 ## Step 3: Setup keys
 
 use `rly keys restore <CHAIN_NAME> <KEY_NAME> <MNEMONIC> --coin-type <COIN_TYPE>` command to add the key of chains that you want to relay. e.g.
