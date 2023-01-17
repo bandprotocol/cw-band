@@ -190,6 +190,7 @@ dependencies = [
  "base64",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "hex",
  "obi",
 ]
 
