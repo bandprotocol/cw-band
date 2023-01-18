@@ -23,6 +23,17 @@ minimum_sources: u8, -> The minimum available sources to determine price is aggr
 ## Deploy, Execute, and Query Contract
 **Note**: In this case use [wasmd](https://github.com/CosmWasm/wasmd) if you use other wasm chains please change your cli.
 
+### Build contract
+```
+scripts/build_artifacts.sh
+```
+
+### Set environment variables
+```
+CHAIN_ID=YOUR_CHAIN_ID
+DEPLOYER=YOUR_WALLET_NAME
+```
+
 ### Deploy contract
 
 ```
