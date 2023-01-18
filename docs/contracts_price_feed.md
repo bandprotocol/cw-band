@@ -24,9 +24,11 @@ minimum_sources: u8, -> The minimum available sources to determine price is aggr
 **Note**: In this case use [wasmd](https://github.com/CosmWasm/wasmd) if you use other wasm chains please change your cli.
 
 ### Build contract
+You can do further optimization using rust-optimizer. rust-optimizer produces reproducible builds of CosmWasm smart contracts and does heavy optimization on the build size, using binary stripping and wasm-opt.
 ```
 scripts/build_artifacts.sh
 ```
+Binary file will be at artifacts/my_first_contract.wasm folder, which is more smaller than when only RUTFLAGS was used.
 
 ### Set environment variables
 ```
