@@ -28,7 +28,7 @@ You can do further optimization using rust-optimizer. rust-optimizer produces re
 ```
 scripts/build_artifacts.sh
 ```
-Binary file will be at artifacts/my_first_contract.wasm folder, which is more smaller than when only RUTFLAGS was used.
+Binary file will be at artifacts/price_feed.wasm folder, which is more smaller than when only RUTFLAGS was used.
 
 ### Set environment variables
 ```
