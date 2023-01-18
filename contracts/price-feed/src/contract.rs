@@ -79,7 +79,8 @@ pub fn try_request(
         symbols,
         minimum_sources: config.minimum_sources,
     }
-    .try_to_vec().map(Binary)
+    .try_to_vec()
+    .map(Binary)
     .map_err(|err| ContractError::CustomError {
         val: err.to_string(),
     })?;
