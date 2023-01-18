@@ -20,7 +20,7 @@ minimum_sources: u8, -> The minimum available sources to determine price is aggr
 ```
 
 
-## Deploy, Execute, and Query Conreact
+## Deploy, Execute, and Query Contract
 **Note**: In this case use [wasmd](https://github.com/CosmWasm/wasmd) if you use other wasm chains please change your cli.
 
 ### Deploy contract
