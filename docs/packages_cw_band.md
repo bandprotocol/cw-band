@@ -10,7 +10,7 @@ Contain common data type that specific to BandChain oracle packet and some commo
 pub struct OracleRequestPacketData {
     pub client_id: String, // A unique ID for the oracle request.
     pub oracle_script_id: Uint64, // The oracle script ID to query.
-    pub calldata: Vec<u8>, // Bytes of input data of oracle script.
+    pub calldata: Binary, // Bytes of input data of oracle script.
     pub ask_count: Uint64, // The number of validators that are requested to respond.
     pub min_count: Uint64, // The minimum number of validators that need to respond.
     pub fee_limit: Vec<Coin>, // The maximum amount of band in uband to be paid to the data source providers.
@@ -51,7 +51,7 @@ pub struct OracleResponsePacketData {
     pub ans_count: Uint64, // The number of validators that are requested to respond.
     pub request_time: Uint64, // Timestamp of the request.
     pub resolve_time: Uint64, // Timestamp of resolving the request
-    pub resolve_status: String, // Resolve status
+    pub resolve_status: ResolveStatus, // Resolve status
     pub result: Binary, // Bytes of output from oracle script.
 }
 ```

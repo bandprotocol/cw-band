@@ -14,8 +14,8 @@ use obi::enc::OBIEncode;
 use cw_band::{Input, OracleRequestPacketData};
 
 // WARNING /////////////////////////////////////////////////////////////////////////
-// THIS IS CONTRACT STILL CONTAINS UNAUDITED CODE AND IS STILL UNDER DEVELOPMENT. //
-// DO NOT USE THIS CODE IN PRODUCTION.                                            //
+// THIS CONTRACT IS AN EXAMPLE HOW TO USE CW_BAND TO WRITE CONTRACT.              //
+// PLEASE USE THIS CODE AS THE REFERENCE AND NOT USE THIS CODE IN PRODUCTION.     //
 ////////////////////////////////////////////////////////////////////////////////////
 
 const E9: Uint64 = Uint64::new(1_000_000_000u64);
@@ -64,7 +64,7 @@ pub fn execute(
 }
 
 // TODO: Possible features
-// - Bounty logic to incentivize relayer and no one can spam request for free
+// - Request fee + Bounty logic to prevent request spam and incentivize relayer
 // - Whitelist who can call update price
 pub fn try_request(
     deps: DepsMut,
@@ -79,7 +79,7 @@ pub fn try_request(
         symbols,
         minimum_sources: config.minimum_sources,
     }
-    .try_to_vec()
+    .try_to_vec().map(Binary)
     .map_err(|err| ContractError::CustomError {
         val: err.to_string(),
     })?;
@@ -87,7 +87,7 @@ pub fn try_request(
     let packet = OracleRequestPacketData {
         client_id: config.client_id,
         oracle_script_id: config.oracle_script_id,
-        calldata: Binary(raw_calldata),
+        calldata: raw_calldata,
         ask_count: config.ask_count,
         min_count: config.min_count,
         prepare_gas: config.prepare_gas,
