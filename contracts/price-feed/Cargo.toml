@@ -1,5 +1,5 @@
 [package]
-authors = ["taobun <bun@bandprotocol.com>"]
+authors = ["Band Protocol <connect@bandprotocol.com>"]
 description = "Price feed contract store price data from BandChain"
 edition = "2021"
 name = "price-feed"
@@ -35,7 +35,7 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 [dependencies]
 cosmwasm-schema = "1.1.5"
 cosmwasm-std = {version = "1.1.5", features = ["ibc3"]}
-cw-band = {path = "../../packages/cw-band", version = "0.1.0-alpha.1"}
+cw-band = {path = "../../packages/cw-band", version = "0.1.1"}
 cw-storage-plus = "0.16.0"
 cw2 = "0.16.0"
 obi = "0.0.2"

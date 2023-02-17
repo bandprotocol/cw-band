@@ -82,6 +82,7 @@ Where the structure for SendPacket and OracleRequestPacketData are shown below:
 IbcMsg::SendPacket {
     channel_id: endpoint.channel_id,
     data: to_binary(&oracleRequestPacketData)?,
+    // IBC timeout based on how long your contract will wait acknowkedgement until trigger timeout packet
     timeout: IbcTimeout::with_timestamp(env.block.time.plus_seconds(60)),
 }
 ```
@@ -90,7 +91,7 @@ IbcMsg::SendPacket {
 pub struct OracleRequestPacketData {
     pub client_id: String,
     pub oracle_script_id: Uint64,
-    pub calldata: Vec<u8>,
+    pub calldata: Binary,
     pub ask_count: Uint64,
     pub min_count: Uint64,
     pub fee_limit: Vec<Coin>,
@@ -114,7 +115,7 @@ pub fn ibc_packet_ack(
 }
 ```
 
-The oracle will send an acknowledgment message with the corresponding request_id on BandChain if the request can be processed so that the sender’s side can process the data as needed.
+The oracle will send an acknowledgement message with the corresponding request_id on BandChain if the request can be processed so that the sender’s side can process the data as needed.
 
 ### IBCPacketReceiveMsg
 
@@ -183,7 +184,7 @@ pub struct OracleResponsePacketData {
     pub ans_count: Uint64,
     pub request_time: Uint64,
     pub resolve_time: Uint64,
-    pub resolve_status: String,
+    pub resolve_status: ResolveStatus,
     pub result: Vec<u8>,
 }
 ```
@@ -201,4 +202,4 @@ pub fn ibc_packet_timeout(
 }
 ```
 
-In the case where an acknowledgment message from the destination module hasn’t been received, the relayers will call this function. Requests get that timeout can be handled within this function. e.g. emitting the event or marking request status.
+In the case where an acknowledgement message from the destination module hasn’t been received, the relayers will call this function. Requests get that timeout can be handled within this function. e.g. emitting the event or marking request status.

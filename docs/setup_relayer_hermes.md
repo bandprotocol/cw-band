@@ -11,7 +11,7 @@ You can start with this [example config file](https://github.com/bandprotocol/he
 As for most parts of the config, you can see their description [here](https://hermes.informal.systems/documentation/configuration/description.html)](https://hermes.informal.systems/documentation/configuration/description.html)
 
 For the 'ignore_port_channel' config which is the one that we implemented, it is used to specify which destination port-channel pairs that we want to ignore their acknowledge packets
-e.g. `ignore_port_channel = [{ channel_id = 'channel-64', port_id = 'oracle'}]` means we want to ignore acknowledgment packet that its destination has channel_id 'channel-64' and port_id 'oracle'
+e.g. `ignore_port_channel = [{ channel_id = 'channel-64', port_id = 'oracle'}]` means we want to ignore acknowledgement packet that its destination has channel_id 'channel-64' and port_id 'oracle'
 
 ## Step 2: Build Hermes binary
 
@@ -39,15 +39,21 @@ use `hermes keys add` command to add keys of chains you want to relay
 e.g.
 
 ```bash
-hermes [--config <CONFIG_FILE_PATH>] keys add --chain laozi-mainnet --mnemonic-file "<MNEMONIC_PATH>" --hd-path "m/44'/494'/0'/0/0"
+hermes [--config <CONFIG_FILE_PATH>] keys add --chain band-laozi-testnet6 --mnemonic-file "<MNEMONIC_PATH>" --hd-path "m/44'/494'/0'/0/0"
+```
+
+and
+
+```bash
+hermes [--config <CONFIG_FILE_PATH>] keys add --chain wasmchain --mnemonic-file "<MNEMONIC_PATH>" 
 ```
 
 **Note**
 Default Derivation Path is m/44'/118'/0'/0/0 but the keys that were generated from Bandd Derivation Path are m/44'/494'/0'/0/0
 
-## Step 4: Create a channel
+## Step 4: Create a channel and connection
 
-use `hermes create channel` command to create a channel that connects between two chains
+use `hermes create channel` command to create a channel that connects between two chains and  `--new-client-connection` command to create a new client on each chain and establish a connection
 e.g.
 
 ```bash
