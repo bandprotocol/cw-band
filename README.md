@@ -12,7 +12,6 @@ This repo provides a library and examples to build CosmWasm smart contract to in
 - [How to request data from BandChain via IBC](./docs/how_to_request_data_from_bandchain_via_ibc.md)
 - [Packages - cw-band](./docs/packages_cw_band.md)
 - [Contract example - Price feed](./docs/contracts_price_feed.md)
-- [TODO] [Contract example - Consumer](./docs/contracts_consumer.md)
 - [Setup relayer](./docs/setup_relayer.md)
 
 ---
