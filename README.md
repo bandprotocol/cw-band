@@ -32,7 +32,6 @@ This folder contains libraries for smart contracts to use. These libraries will 
 We provide sample contracts that either implement or consume these packages to both provide examples, and provide a basis for code you can extend for more custom contacts.
 
 - `Price feed`: A contract that can request data from BandChain by using cw-band package and allow other contracts to query the data. You can learn more detail in this [document](./docs/contracts_price_feed.md).
-- [TODO] `Consumer`: A contract that queries price from price feed contract. You can learn more detail in this [document](./docs/contracts_consumer.md).
 
 ### Scripts
 
