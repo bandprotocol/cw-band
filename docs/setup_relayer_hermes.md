@@ -6,9 +6,9 @@ This document describes methods on how to set up [Hermes Relayer](https://github
 
 ## Step 1: Setup Config file
 
-You can start with this [example config file](https://github.com/bandprotocol/hermes/blob/2c07633f234e06bb0fd2dd88ab97952c659497cd/config_example.toml) as a starting point
+You can start with this [example config file](https://github.com/bandprotocol/hermes/blob/2c07633f234e06bb0fd2dd88ab97952c659497cd/config_example.toml) as a starting point.
 
-As for most parts of the config, you can see their description [here](https://hermes.informal.systems/documentation/configuration/description.html)](https://hermes.informal.systems/documentation/configuration/description.html)
+As for most parts of the config, you can see their description [here](https://hermes.informal.systems/documentation/configuration/description.html)
 
 For the 'ignore_port_channel' config which is the one that we implemented, it is used to specify which destination port-channel pairs that we want to ignore their acknowledge packets
 e.g. `ignore_port_channel = [{ channel_id = 'channel-64', port_id = 'oracle'}]` means we want to ignore acknowledgement packet that its destination has channel_id 'channel-64' and port_id 'oracle'
