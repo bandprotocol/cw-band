@@ -57,7 +57,7 @@ use `hermes create channel` command to create a channel that connects between tw
 e.g.
 
 ```bash
-hermes [--config $CONFIG_DIR] create channel --a-chain laozi-mainnet --b-chain <YOUR_CHAIN_ID> --a-port oracle --b-port <YOUR_PORT> --order unordered --channel-version bandchain-1 --new-client-connection
+hermes [--config $CONFIG_DIR] create channel --a-chain band-laozi-testnet6 --b-chain <YOUR_CHAIN_ID> --a-port oracle --b-port <YOUR_PORT> --order unordered --channel-version bandchain-1 --new-client-connection
 ```
 
 **Note**
