@@ -6,9 +6,9 @@ This document describes methods on how to set up [Hermes Relayer](https://github
 
 ## Step 1: Setup Config file
 
-You can start with this [example config file](https://github.com/bandprotocol/hermes/blob/2c07633f234e06bb0fd2dd88ab97952c659497cd/config_example.toml) as a starting point
+You can start with this [example config file](https://github.com/bandprotocol/hermes/blob/2c07633f234e06bb0fd2dd88ab97952c659497cd/config_example.toml) as a starting point.
 
-As for most parts of the config, you can see their description [here](https://hermes.informal.systems/documentation/configuration/description.html)](https://hermes.informal.systems/documentation/configuration/description.html)
+As for most parts of the config, you can see their description [here](https://hermes.informal.systems/documentation/configuration/description.html)
 
 For the 'ignore_port_channel' config which is the one that we implemented, it is used to specify which destination port-channel pairs that we want to ignore their acknowledge packets
 e.g. `ignore_port_channel = [{ channel_id = 'channel-64', port_id = 'oracle'}]` means we want to ignore acknowledgement packet that its destination has channel_id 'channel-64' and port_id 'oracle'
@@ -57,7 +57,7 @@ use `hermes create channel` command to create a channel that connects between tw
 e.g.
 
 ```bash
-hermes [--config $CONFIG_DIR] create channel --a-chain laozi-mainnet --b-chain <YOUR_CHAIN_ID> --a-port oracle --b-port <YOUR_PORT> --order unordered --channel-version bandchain-1 --new-client-connection
+hermes [--config $CONFIG_DIR] create channel --a-chain band-laozi-testnet6 --b-chain <YOUR_CHAIN_ID> --a-port oracle --b-port <YOUR_PORT> --order unordered --channel-version bandchain-1 --new-client-connection
 ```
 
 **Note**
