@@ -74,7 +74,6 @@ pub fn try_request(
     let endpoint = ENDPOINT.load(deps.storage)?;
     let config = BAND_CONFIG.load(deps.storage)?;
 
-    // TODO: Maybe helper function in cw-band for creating OracleRequestPacketData
     let raw_calldata = Input {
         symbols,
         minimum_sources: config.minimum_sources,
