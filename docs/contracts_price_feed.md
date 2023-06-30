@@ -50,6 +50,12 @@ echo "Your contract address is $CONTRACT_ADDR"
 ```
 
 ### Request data from BandChain example
+
+Note: Please run a relayer before requesting data
+Here are the simple guides for setting up a relayer.
+- [Hermes relayer](./setup_relayer_hermes.md)
+- [Go relayer](./setup_relayer_go-relayer.md)
+
 ```
 # Execute message
 wasmd tx wasm execute $CONTRACT_ADDR '{"request":{"symbols": ["BTC"] }}' --from $DEPLOYER -y --chain-id=$CHAIN_ID -b bloc
