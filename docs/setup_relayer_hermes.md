@@ -74,4 +74,4 @@ e.g.
 hermes [--config <CONFIG_FILE_PATH>] start
 ```
 
-And then..finished! Your relayer is running now.
+Then, wait until you receive `Hermes has started`. Now, your relayer is running.
