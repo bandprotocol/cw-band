@@ -41,13 +41,13 @@ use `hermes keys add` command to add keys of chains you want to relay
 e.g.
 
 ```bash
-hermes [--config <CONFIG_FILE_PATH>] keys add --chain band-laozi-testnet6 --mnemonic-file "<MNEMONIC_PATH>" --hd-path "m/44'/494'/0'/0/0"
+hermes --config <CONFIG_FILE_PATH> keys add --chain band-laozi-testnet6 --mnemonic-file "<MNEMONIC_PATH>" --hd-path "m/44'/494'/0'/0/0"
 ```
 
 and
 
 ```bash
-hermes [--config <CONFIG_FILE_PATH>] keys add --chain wasmchain --mnemonic-file "<MNEMONIC_PATH>" 
+hermes --config <CONFIG_FILE_PATH> keys add --chain wasmchain --mnemonic-file "<MNEMONIC_PATH>" 
 ```
 
 **Note**
@@ -59,7 +59,7 @@ use `hermes create channel` command to create a channel that connects between tw
 e.g.
 
 ```bash
-hermes [--config <CONFIG_FILE_PATH>] create channel --a-chain band-laozi-testnet6 --b-chain <YOUR_CHAIN_ID> --a-port oracle --b-port <YOUR_PORT> --order unordered --channel-version bandchain-1 --new-client-connection
+hermes --config <CONFIG_FILE_PATH> create channel --a-chain band-laozi-testnet6 --b-chain <YOUR_CHAIN_ID> --a-port oracle --b-port <YOUR_PORT> --order unordered --channel-version bandchain-1 --new-client-connection
 ```
 
 **Note**
@@ -71,7 +71,7 @@ use `hermes start` command to start your Hermes relayer
 e.g.
 
 ```bash
-hermes [--config <CONFIG_FILE_PATH>] start
+hermes --config <CONFIG_FILE_PATH> start
 ```
 
 Then, wait until you receive `Hermes has started`. Now, your relayer is running.
