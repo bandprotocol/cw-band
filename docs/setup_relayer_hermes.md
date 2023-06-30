@@ -10,7 +10,7 @@ You can start with this [example config file](https://github.com/bandprotocol/he
 
 As for most parts of the config, you can see their description [here](https://hermes.informal.systems/documentation/configuration/description.html)
 
-For the 'ignore_port_channel' config which is the one that we implemented, it is used to specify which destination port-channel pairs that we want to ignore their acknowledge packets
+For the 'ignore_port_channel' config which is one that we implemented, it is used to specify which destination port-channel pairs that we want to ignore their acknowledge packets
 e.g. `ignore_port_channel = [{ channel_id = 'channel-64', port_id = 'oracle'}]` means we want to ignore acknowledgement packet that its destination has channel_id 'channel-64' and port_id 'oracle'
 
 ## Step 2: Build Hermes binary
@@ -32,6 +32,8 @@ You should find Hermes binary at target/release/
 ### Option 2.2: Download from Github (Not Recommended)
 
 You can download Hermes binary directly from [here](https://github.com/bandprotocol/hermes/releases/tag/v1.1.0-band)
+
+Note: You have to set a path to the binary of Hermes before doing the next step. You can also use `./hermes` to run Hermes binary
 
 ## Step 3: Add keys to both chains on Hermes
 
@@ -57,7 +59,7 @@ use `hermes create channel` command to create a channel that connects between tw
 e.g.
 
 ```bash
-hermes [--config $CONFIG_DIR] create channel --a-chain band-laozi-testnet6 --b-chain <YOUR_CHAIN_ID> --a-port oracle --b-port <YOUR_PORT> --order unordered --channel-version bandchain-1 --new-client-connection
+hermes [--config <CONFIG_FILE_PATH>] create channel --a-chain band-laozi-testnet6 --b-chain <YOUR_CHAIN_ID> --a-port oracle --b-port <YOUR_PORT> --order unordered --channel-version bandchain-1 --new-client-connection
 ```
 
 **Note**
@@ -69,7 +71,7 @@ use `hermes start` command to start your Hermes relayer
 e.g.
 
 ```bash
-hermes [--config $CONFIG_DIR] start
+hermes [--config <CONFIG_FILE_PATH>] start
 ```
 
 And then..finished! Your relayer is running now.
