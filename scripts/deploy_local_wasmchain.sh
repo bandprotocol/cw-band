@@ -12,7 +12,7 @@ TX=$(wasmd tx wasm store ./artifacts/price_feed.wasm  --from $DEPLOYER --chain-i
 CODE_ID=$(wasmd query tx $TX --output json | jq -r '.logs[0].events[-1].attributes[1].value')
 echo "Your contract code_id is $CODE_ID"
 
-INITIAL_STATE='{"ask_count":"1","client_id":"cw-band-price-feed","execute_gas":"500000","fee_limit":[{"amount":"100000","denom":"uband"}],"min_count":"1","minimum_sources":1,"oracle_script_id":"360","prepare_gas":"100000"}'
+INITIAL_STATE='{"ask_count":"16","client_id":"cw-band-price-feed","execute_gas":"500000","fee_limit":[{"amount":"100000","denom":"uband"}],"min_count":"16","minimum_sources":4,"oracle_script_id":"360","prepare_gas":"100000"}'
 wasmd tx wasm instantiate $CODE_ID $INITIAL_STATE --amount 50000stake  --label "Counter Contract" --from $DEPLOYER --chain-id $CHAIN_ID --gas-prices 0.1stake --gas auto --gas-adjustment 1.3 -b block -y --no-admin
 CONTRACT_ADDR=$(wasmd query wasm list-contract-by-code $CODE_ID --output json | jq -r '.contracts[0]')
 echo "Your contract address is $CONTRACT_ADDR"
