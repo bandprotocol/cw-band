@@ -69,4 +69,4 @@ wasmd query wasm contract-state smart $CONTRACT_ADDR '{"get_rate":{"symbol":"BTC
 
 ## Endpoint to connect with BandChain
 
-https://docs.bandchain.org/technical-specifications/band-endpoints.html
+https://docs.bandchain.org/develop/api-endpoints
