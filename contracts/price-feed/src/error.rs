@@ -10,6 +10,9 @@ pub enum ContractError {
     #[error("{0}")]
     Std(#[from] StdError),
 
+    #[error("Provided funds are less than minimum fee")]
+    InsufficientFunds {},
+
     #[error("Request didn't suceess")]
     RequestNotSuccess {},
 
