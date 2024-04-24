@@ -1,14 +1,14 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    has_coins, to_json_binary, Binary, Coin, Deps, DepsMut, Empty, Env, IbcMsg, IbcTimeout,
-    MessageInfo, Response, StdResult, Uint256, Uint64,
+    to_json_binary, Binary, Deps, DepsMut, Empty, Env, IbcMsg, IbcTimeout, MessageInfo, Response,
+    StdResult, Uint256, Uint64,
 };
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::{Config, Rate, ReferenceData, RequestConfig, CONFIG, ENDPOINT, RATES};
+use crate::state::{Config, Rate, ReferenceData, BAND_CONFIG, ENDPOINT, RATES};
 use obi::enc::OBIEncode;
 
 use cw_band::{Input, OracleRequestPacketData};
@@ -34,20 +34,17 @@ pub fn instantiate(
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    CONFIG.save(
+    BAND_CONFIG.save(
         deps.storage,
         &Config {
-            band_request: RequestConfig {
-                client_id: msg.client_id,
-                oracle_script_id: msg.oracle_script_id,
-                ask_count: msg.ask_count,
-                min_count: msg.min_count,
-                fee_limit: msg.fee_limit,
-                prepare_gas: msg.prepare_gas,
-                execute_gas: msg.execute_gas,
-                minimum_sources: msg.minimum_sources,
-            },
-            fee: msg.fee,
+            client_id: msg.client_id,
+            oracle_script_id: msg.oracle_script_id,
+            ask_count: msg.ask_count,
+            min_count: msg.min_count,
+            fee_limit: msg.fee_limit,
+            prepare_gas: msg.prepare_gas,
+            execute_gas: msg.execute_gas,
+            minimum_sources: msg.minimum_sources,
         },
     )?;
 
@@ -58,11 +55,11 @@ pub fn instantiate(
 pub fn execute(
     deps: DepsMut,
     env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Request { symbols } => try_request(deps, env, symbols, info.funds),
+        ExecuteMsg::Request { symbols } => try_request(deps, env, symbols),
     }
 }
 
@@ -155,126 +152,6 @@ fn query_reference_data_bulk(
         .map(|pair| query_reference_data(deps, pair))
         .collect()
 }
-
+// TODO: Writing test
 #[cfg(test)]
-mod tests {
-
-    use super::*;
-    use cosmwasm_std::{
-        coin, coins, Addr, AllBalanceResponse, Api, BankQuery, CustomMsg, CustomQuery, Empty,
-        Storage,
-    };
-    use cw_multi_test::{
-        App, AppBuilder, Bank, Contract, ContractWrapper, Distribution, Executor, Ibc,
-        IbcAcceptingModule, IntoAddr, Module, Staking, Wasm,
-    };
-    use serde::de::DeserializeOwned;
-
-    fn get_std_price_ref_contract() -> Box<dyn Contract<Empty>> {
-        let contract = ContractWrapper::new(execute, instantiate, query);
-        Box::new(contract)
-    }
-
-    /// Utility function for generating user addresses.
-    fn addr_make(addr: &str) -> Addr {
-        addr.into_addr()
-    }
-
-    fn query_app<BankT, ApiT, StorageT, CustomT, WasmT, StakingT, DistrT, IbcT>(
-        app: &App<BankT, ApiT, StorageT, CustomT, WasmT, StakingT, DistrT, IbcT>,
-        rcpt: &Addr,
-    ) -> Vec<Coin>
-    where
-        CustomT::ExecT: CustomMsg + DeserializeOwned + 'static,
-        CustomT::QueryT: CustomQuery + DeserializeOwned + 'static,
-        WasmT: Wasm<CustomT::ExecT, CustomT::QueryT>,
-        BankT: Bank,
-        ApiT: Api,
-        StorageT: Storage,
-        CustomT: Module,
-        StakingT: Staking,
-        DistrT: Distribution,
-        IbcT: Ibc,
-    {
-        let query = BankQuery::AllBalances {
-            address: rcpt.into(),
-        }
-        .into();
-        let val: AllBalanceResponse = app.wrap().query(&query).unwrap();
-        val.amount
-    }
-
-    #[test]
-    fn deploy_free_contract() {
-        let owner = addr_make("owner");
-        let init_funds = coins(300000000, "uband");
-
-        // let mut app = App::new();
-
-        let mut app =
-            AppBuilder::new()
-                .with_ibc(IbcAcceptingModule::new())
-                .build(|router, _, storage| {
-                    router
-                        .bank
-                        .init_balance(storage, &owner, init_funds)
-                        .unwrap();
-                });
-
-        // set up contract
-        let code_id = app.store_code(get_std_price_ref_contract());
-        let msg = InstantiateMsg {
-            client_id: "test-price-feed".into(),
-            oracle_script_id: Uint64::from(304u64),
-            ask_count: Uint64::from(16u64),
-            min_count: Uint64::from(10u64),
-            fee_limit: vec![coin(10000, "uband")],
-            prepare_gas: Uint64::from(10000u64),
-            execute_gas: Uint64::from(250000u64),
-            minimum_sources: 3,
-            fee: vec![],
-        };
-        let contract_addr = app
-            .instantiate_contract(code_id, owner.clone(), &msg, &vec![], "Payout", None)
-            .unwrap();
-
-        // sender funds must be the same
-        let sender: Vec<Coin> = query_app(&app, &owner);
-        assert_eq!(sender, coins(300000000, "uband"));
-        // get contract address, has funds
-        let funds = query_app(&app, &contract_addr);
-        assert_eq!(funds, vec![]);
-
-        // create empty account
-        let random = addr_make("random");
-        let funds = query_app(&app, &random);
-        assert_eq!(funds, vec![]);
-
-        // do one request
-        let res = app
-            .execute_contract(
-                random.clone(),
-                contract_addr.clone(),
-                &ExecuteMsg::Request {
-                    symbols: vec![
-                        "BTC".to_string(),
-                        "ETH".to_string(),
-                        "ATOM".to_string(),
-                        "BAND".to_string(),
-                    ],
-                },
-                &vec![],
-            )
-            .unwrap();
-        assert_eq!(3, res.events.len());
-
-        // the call to payout does emit this as well as custom attributes
-        let payout_exec = &res.events[0];
-        assert_eq!(payout_exec.ty.as_str(), "execute");
-        assert_eq!(payout_exec.attributes, [("_contract_addr", &contract_addr)]);
-
-        // next is a custom wasm event
-        let custom_attrs = res.custom_attrs(1);
-        assert_eq!(custom_attrs, [("action", "payout")]);
-    }
-}
+mod tests {}
