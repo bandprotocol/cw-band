@@ -94,9 +94,9 @@ checksum = "c2459377285ad874054d797f3ccebf984978aa39129f6eafde5cdc8315b612f8"
 
 [[package]]
 name = "cosmwasm-crypto"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1cd7a367ebd007cb05fe17e9c449beeb3636b15160750f2c6226c7dfd46df37"
+checksum = "d8b08e6670ab9e13a1a8a9cfad8fdad48bf0aaf88a6e81f39f2d9b2fc79b1890"
 dependencies = [
  "digest 0.10.7",
  "ed25519-zebra",
@@ -107,18 +107,18 @@ dependencies = [
 
 [[package]]
 name = "cosmwasm-derive"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db01ae480b00f133b78830db3211ff63afe08093e78c77ee20e73f7134849a60"
+checksum = "b8b0918fc1a24b2ee08142c8d99d03f4c8e6d74244bdb304dbb29c0dab8e77e9"
 dependencies = [
  "syn 1.0.95",
 ]
 
 [[package]]
 name = "cosmwasm-schema"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de6e530d13452b4e9d882008193ab165032307a31f197b45d7b4e2aeff7577b5"
+checksum = "26dbdb5800ca67f2f2f938d67db59a7c5434af133c3e508779a4df7a9b5d533b"
 dependencies = [
  "cosmwasm-schema-derive",
  "schemars",
@@ -129,9 +129,9 @@ dependencies = [
 
 [[package]]
 name = "cosmwasm-schema-derive"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0ef0d7a8ae8807b8e8f5c94333d12aa9a11efc05f7b864f362582a2b167c663"
+checksum = "d8ee47cf29f7688ebfa6ade8ddabcf51fc153f1157a3b46f5b4b1ce7a0316fdf"
 dependencies = [
  "proc-macro2",
  "quote 1.0.36",
@@ -140,9 +140,9 @@ dependencies = [
 
 [[package]]
 name = "cosmwasm-std"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6201969327d8fe5e9596e8c36e376ab595a885bdfcaa6a0bf57748f9ea2be2b"
+checksum = "88191bd0d4743613eb7a2f086acb0838404cb531bf658382effafc7ba91e8320"
 dependencies = [
  "base64 0.21.7",
  "bech32 0.9.1",
@@ -206,7 +206,7 @@ dependencies = [
 
 [[package]]
 name = "cw-band"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "base64 0.13.1",
  "cosmwasm-schema",
@@ -552,7 +552,6 @@ dependencies = [
  "obi",
  "schemars",
  "serde",
- "serde_json",
  "thiserror",
 ]
 
