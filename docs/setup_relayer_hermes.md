@@ -4,7 +4,7 @@ This document describes methods on how to set up [Hermes Relayer](https://github
 
 ## Step 1: Install Hermes CLI
 
-### Install via Cargo 
+### Install via Cargo
 
 ```
 cargo install ibc-relayer-cli --bin hermes --locked
@@ -13,10 +13,11 @@ cargo install ibc-relayer-cli --bin hermes --locked
 This will download and build the crate ibc-relayer-cli, and install the hermes binary in $HOME/.cargo/bin.
 
 > Note: If you have not installed Rust and Cargo via rustup.rs, you may need to add the $HOME/.cargo/bin directory to your PATH environment variable. For most shells, this can be done by adding the following line to your .bashrc or .zshrc configuration file:
-> 
+>
 > export PATH="$HOME/.cargo/bin:$PATH"
 
 You should now be able to run Hermes by invoking the hermes executable.
+
 ```
 hermes version
 ```
@@ -25,12 +26,11 @@ hermes version
 
 As for most parts of the config, you can see their description [here](https://hermes.informal.systems/documentation/configuration/description.html)
 
-create and write your hermes config base on this example file [example config](https://github.com/bandprotocol/hermes/blob/2c07633f234e06bb0fd2dd88ab97952c659497cd/config_example.toml)
+create and write your hermes config base on this example file [example config](./hermes/example/config.toml)
+
 ```
 nano $HOME/.hermes/config.toml
 ```
-
-
 
 ## Step 3: Add keys to both chains on Hermes
 
@@ -46,12 +46,12 @@ hermes --config <CONFIG_FILE_PATH> keys add --chain band-laozi-testnet6 --mnemon
 and
 
 ```bash
-hermes --config <CONFIG_FILE_PATH> keys add --chain wasmchain --mnemonic-file "<MNEMONIC_PATH>" 
+hermes --config <CONFIG_FILE_PATH> keys add --chain wasmchain --mnemonic-file "<MNEMONIC_PATH>"
 ```
 
 ## Step 4: Create a channel and connection
 
-use `hermes create channel` command to create a channel that connects between two chains and  `--new-client-connection` command to create a new client on each chain and establish a connection
+use `hermes create channel` command to create a channel that connects between two chains and `--new-client-connection` command to create a new client on each chain and establish a connection
 e.g.
 
 ```bash
