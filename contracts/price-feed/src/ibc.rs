@@ -1,7 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    attr, from_slice, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannel,
+    attr, from_json, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannel,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcOrder,
     IbcPacket, IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse,
     StdError, StdResult, Uint64,
@@ -83,13 +83,13 @@ pub fn ibc_packet_receive(
     let packet = msg.packet;
 
     do_ibc_packet_receive(deps, &packet).or_else(|err| {
-        Ok(IbcReceiveResponse::new()
-            .set_ack(ack_fail(err.to_string()))
-            .add_attributes(vec![
+        Ok(
+            IbcReceiveResponse::new(ack_fail(err.to_string())).add_attributes(vec![
                 attr("action", "receive"),
                 attr("success", "false"),
                 attr("error", err.to_string()),
-            ]))
+            ]),
+        )
     })
 }
 
@@ -97,15 +97,12 @@ fn do_ibc_packet_receive(
     deps: DepsMut,
     packet: &IbcPacket,
 ) -> Result<IbcReceiveResponse, ContractError> {
-    let resp: OracleResponsePacketData = from_slice(&packet.data)?;
+    let resp: OracleResponsePacketData = from_json(&packet.data)?;
     if resp.resolve_status != ResolveStatus::Success {
         return Err(ContractError::RequestNotSuccess {});
     }
-    let result: Output =
-        OBIDecode::try_from_slice(&resp.result).map_err(|err| StdError::ParseErr {
-            target_type: "Oracle response packet".into(),
-            msg: err.to_string(),
-        })?;
+    let result: Output = OBIDecode::try_from_slice(&resp.result)
+        .map_err(|err| StdError::parse_err("Oracle response packet", err.to_string()))?;
 
     for r in result.responses {
         if r.response_code == 0 {
@@ -123,9 +120,7 @@ fn do_ibc_packet_receive(
             }
         }
     }
-    Ok(IbcReceiveResponse::new()
-        .set_ack(ack_success())
-        .add_attribute("action", "ibc_packet_received"))
+    Ok(IbcReceiveResponse::new(ack_success()).add_attribute("action", "ibc_packet_received"))
 }
 
 #[entry_point]
