@@ -31,7 +31,7 @@ workflows:
 jobs:
   contract_price_feed:
     docker:
-      - image: rust:1.64.0
+      - image: rust:rust:1.75.0-alpine
     working_directory: ~/project/contracts/price-feed
     steps:
       - checkout:
