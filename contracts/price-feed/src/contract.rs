@@ -1,7 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Empty, Env, IbcMsg, IbcTimeout, MessageInfo, Response,
+    to_json_binary, Binary, Deps, DepsMut, Empty, Env, IbcMsg, IbcTimeout, MessageInfo, Response,
     StdResult, Uint256, Uint64,
 };
 use cw2::set_contract_version;
@@ -79,7 +79,7 @@ pub fn try_request(
         minimum_sources: config.minimum_sources,
     }
     .try_to_vec()
-    .map(Binary)
+    .map(Binary::new)
     .map_err(|err| ContractError::CustomError {
         val: err.to_string(),
     })?;
@@ -97,7 +97,7 @@ pub fn try_request(
 
     Ok(Response::new().add_message(IbcMsg::SendPacket {
         channel_id: endpoint.channel_id,
-        data: to_binary(&packet)?,
+        data: to_json_binary(&packet)?,
         timeout: IbcTimeout::with_timestamp(env.block.time.plus_seconds(60)),
     }))
 }
@@ -111,12 +111,12 @@ pub fn migrate(_deps: DepsMut, _env: Env, _msg: Empty) -> StdResult<Response> {
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetRate { symbol } => to_binary(&query_rate(deps, &symbol)?),
+        QueryMsg::GetRate { symbol } => to_json_binary(&query_rate(deps, &symbol)?),
         QueryMsg::GetReferenceData { symbol_pair } => {
-            to_binary(&query_reference_data(deps, &symbol_pair)?)
+            to_json_binary(&query_reference_data(deps, &symbol_pair)?)
         }
         QueryMsg::GetReferenceDataBulk { symbol_pairs } => {
-            to_binary(&query_reference_data_bulk(deps, &symbol_pairs)?)
+            to_json_binary(&query_reference_data_bulk(deps, &symbol_pairs)?)
         }
     }
 }
@@ -151,7 +151,6 @@ fn query_reference_data_bulk(
         .map(|pair| query_reference_data(deps, pair))
         .collect()
 }
-
 // TODO: Writing test
 #[cfg(test)]
 mod tests {}
