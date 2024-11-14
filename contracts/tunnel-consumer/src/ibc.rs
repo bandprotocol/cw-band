@@ -1,17 +1,16 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    attr, DepsMut, Env, from_json, Ibc3ChannelOpenResponse, IbcBasicResponse,
-    IbcChannel, IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg,
-    IbcChannelOpenResponse, IbcPacket, IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg,
-    IbcReceiveResponse, Never, StdAck,
+    attr, from_json, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannel,
+    IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcPacket,
+    IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, Never, StdAck,
 };
 
-use cw_band::{TUNNEL_APP_VERSION, TUNNEL_ORDER};
-use cw_band::packet::tunnel::{ack_fail, ack_success, TunnelPacketData};
+use cw_band::tunnel::packet::{ack_fail, ack_success, TunnelPacketData};
+use cw_band::tunnel::{TUNNEL_APP_VERSION, TUNNEL_ORDER};
 
-use crate::ContractError;
 use crate::state::{SIGNAL_PRICE, TUNNEL_CONFIG};
+use crate::ContractError;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn ibc_channel_open(
@@ -136,7 +135,7 @@ fn do_ibc_packet_receive(
 
     for price in tunnel_packet.prices {
         let signal_id = &price.signal_id;
-        match SIGNAL_PRICE.may_load(deps.storage, &signal_id)? {
+        match SIGNAL_PRICE.may_load(deps.storage, signal_id)? {
             // If there is no price for this signal, save it
             None => SIGNAL_PRICE.save(deps.storage, signal_id, &price)?,
             // If there is an existing price for this signal, save it only if it is newer

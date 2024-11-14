@@ -1,5 +1,5 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Binary, Coin, to_json_binary, Uint64};
+use cosmwasm_std::{to_json_binary, Binary, Coin, Uint64};
 
 #[cw_serde]
 pub struct OracleRequestPacketData {
@@ -61,14 +61,15 @@ pub struct BandAcknowledgement {
 
 #[cfg(test)]
 mod tests {
-    use base64::decode;
+    use base64::Engine;
+    use base64::engine::general_purpose::STANDARD;
     use cosmwasm_std::from_json;
 
     use super::*;
 
     #[test]
     fn test_serialize_request_packet() {
-        let calldata = base64::decode("AAAAAgAAAANCVEMAAAADRVRIAQ==").unwrap();
+        let calldata = STANDARD.decode("AAAAAgAAAANCVEMAAAADRVRIAQ==").unwrap();
         let packet = OracleRequestPacketData {
             client_id: "1".into(),
             oracle_script_id: Uint64::from(360u64),
@@ -85,7 +86,8 @@ mod tests {
 
     #[test]
     fn test_deserialize_response_packet() {
-        let packet = from_json::<OracleResponsePacketData>(&decode("eyJhbnNfY291bnQiOiIxNiIsImNsaWVudF9pZCI6IjQxMTg2MTEiLCJyZXF1ZXN0X2lkIjoiMTM4NTk4OTkiLCJyZXF1ZXN0X3RpbWUiOiIxNjY5NzkwNDQ1IiwicmVzb2x2ZV9zdGF0dXMiOiJSRVNPTFZFX1NUQVRVU19TVUNDRVNTIiwicmVzb2x2ZV90aW1lIjoiMTY2OTc5MDQ1MSIsInJlc3VsdCI6IkFBQUFCQUFBQUFBdld4dWdBQUFBQW1jZHVIQUFBQUFBQTlzK1h3QUFBQUFQTHdtRyJ9").unwrap()).unwrap();
+        let decoded = STANDARD.decode("eyJhbnNfY291bnQiOiIxNiIsImNsaWVudF9pZCI6IjQxMTg2MTEiLCJyZXF1ZXN0X2lkIjoiMTM4NTk4OTkiLCJyZXF1ZXN0X3RpbWUiOiIxNjY5NzkwNDQ1IiwicmVzb2x2ZV9zdGF0dXMiOiJSRVNPTFZFX1NUQVRVU19TVUNDRVNTIiwicmVzb2x2ZV90aW1lIjoiMTY2OTc5MDQ1MSIsInJlc3VsdCI6IkFBQUFCQUFBQUFBdld4dWdBQUFBQW1jZHVIQUFBQUFBQTlzK1h3QUFBQUFQTHdtRyJ9").unwrap();
+        let packet = from_json::<OracleResponsePacketData>(decoded).unwrap();
 
         assert_eq!(packet.resolve_status, ResolveStatus::Success);
         assert_eq!(packet.request_id, Uint64::from(13859899u64))

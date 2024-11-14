@@ -1,19 +1,19 @@
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    attr, DepsMut, Env, from_json, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannel,
+    attr, from_json, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannel,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcOrder,
     IbcPacket, IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse,
     StdError, StdResult, Uint64,
 };
-#[cfg(not(feature = "library"))]
-use cosmwasm_std::entry_point;
 use obi::dec::OBIDecode;
 
-use cw_band::ORACLE_APP_VERSION;
-use cw_band::Output;
-use cw_band::packet::oracle::{ack_fail, ack_success, OracleResponsePacketData, ResolveStatus};
+use cw_band::oracle::oracle_script::std_crypto::Output;
+use cw_band::oracle::packet::{ack_fail, ack_success, OracleResponsePacketData, ResolveStatus};
+use cw_band::oracle::ORACLE_APP_VERSION;
 
 use crate::error::{ContractError, Never};
-use crate::state::{ENDPOINT, Rate, RATES};
+use crate::state::{Rate, ENDPOINT, RATES};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 /// enforces ordering and versioning constraints
@@ -65,7 +65,7 @@ fn enforce_order_and_version(
     Ok(())
 }
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 pub fn ibc_channel_close(
     _deps: DepsMut,
     _env: Env,
@@ -74,7 +74,7 @@ pub fn ibc_channel_close(
     unimplemented!();
 }
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 pub fn ibc_packet_receive(
     deps: DepsMut,
     _env: Env,
@@ -123,7 +123,7 @@ fn do_ibc_packet_receive(
     Ok(IbcReceiveResponse::new(ack_success()).add_attribute("action", "ibc_packet_received"))
 }
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 pub fn ibc_packet_ack(
     _deps: DepsMut,
     _env: Env,
@@ -133,7 +133,7 @@ pub fn ibc_packet_ack(
     Ok(IbcBasicResponse::new().add_attribute("action", "ibc_packet_ack"))
 }
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 /// TODO: Handle when didn't get response packet in time
 pub fn ibc_packet_timeout(
     _deps: DepsMut,

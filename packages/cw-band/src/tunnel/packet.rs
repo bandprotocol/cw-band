@@ -1,5 +1,5 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Binary, Int64, StdAck, to_json_binary, Uint64};
+use cosmwasm_std::{to_json_binary, Binary, Int64, StdAck, Uint64};
 
 #[cw_serde]
 pub struct TunnelPacketData {

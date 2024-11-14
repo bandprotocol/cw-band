@@ -1,12 +1,12 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    Addr, Binary, Deps, DepsMut, Env, IbcEndpoint, MessageInfo, Response, StdResult,
-    to_json_binary, Uint64,
+    to_json_binary, Addr, Binary, Deps, DepsMut, Env, IbcEndpoint, MessageInfo, Response,
+    StdResult, Uint64,
 };
 use cw2::set_contract_version;
 
-use cw_band::packet::tunnel::Price;
+use cw_band::tunnel::packet::Price;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, UpdateTunnelConfigMsg};

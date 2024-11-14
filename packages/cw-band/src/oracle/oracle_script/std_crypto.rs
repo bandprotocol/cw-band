@@ -7,13 +7,13 @@ pub struct Input {
 }
 
 #[derive(OBIDecode)]
+pub struct Output {
+    pub responses: Vec<Response>,
+}
+
+#[derive(OBIDecode)]
 pub struct Response {
     pub symbol: String,
     pub response_code: u8,
     pub rate: u64,
-}
-
-#[derive(OBIDecode)]
-pub struct Output {
-    pub responses: Vec<Response>,
 }

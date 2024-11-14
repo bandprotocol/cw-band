@@ -1,19 +1,19 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    Binary, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcTimeout, MessageInfo, Response,
-    StdResult, to_json_binary, Uint256, Uint64,
+    to_json_binary, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcTimeout, MessageInfo,
+    Response, StdResult, Uint256, Uint64,
 };
 
 use cw2::set_contract_version;
 use obi::enc::OBIEncode;
 
-use cw_band::Input;
-use cw_band::packet::oracle::OracleRequestPacketData;
+use cw_band::oracle::oracle_script::std_crypto::Input;
+use cw_band::oracle::packet::OracleRequestPacketData;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::{BAND_CONFIG, Config, ENDPOINT, Rate, RATES, ReferenceData};
+use crate::state::{Config, Rate, ReferenceData, BAND_CONFIG, ENDPOINT, RATES};
 
 // WARNING /////////////////////////////////////////////////////////////////////////
 // THIS CONTRACT IS AN EXAMPLE HOW TO USE CW_BAND TO WRITE CONTRACT.              //

@@ -3,7 +3,7 @@ use cosmwasm_std::{IbcChannel, IbcEndpoint};
 use cw_controllers::Admin;
 use cw_storage_plus::Map;
 
-use cw_band::packet::tunnel::Price;
+use cw_band::tunnel::packet::Price;
 
 pub const ADMIN: Admin = Admin::new("admin");
 pub const TUNNEL_CONFIG: Map<&str, IbcEndpoint> = Map::new("tunnel_config");
