@@ -8,17 +8,6 @@ version = "0.1.0"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[profile.release]
-codegen-units = 1
-debug = false
-debug-assertions = false
-incremental = false
-lto = true
-opt-level = 3
-overflow-checks = true
-panic = 'abort'
-rpath = false
-
 [features]
 # use library feature to disable all instantiate/execute/query exports
 library = []
@@ -32,7 +21,7 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 
 [dependencies]
 cosmwasm-schema = "2.0.2"
-cosmwasm-std = "2.0.2"
+cosmwasm-std = { version = "2.0.2", features = ["stargate"] }
 cw-band = {path = "../../packages/cw-band", version = "0.2.0"}
 cw-storage-plus = "2.0.0"
 cw2 = "2.0.0"

@@ -1,10 +1,7 @@
 mod channel;
 mod crypto;
-mod packet;
+pub mod packet;
 
-pub use channel::IBC_APP_VERSION;
+pub use channel::{ORACLE_APP_VERSION, TUNNEL_APP_VERSION, TUNNEL_ORDER};
 pub use crypto::{Input, Output, Response};
-pub use packet::{
-    ack_fail, ack_success, AcknowledgementMsg, BandAcknowledgement, OracleRequestPacketData,
-    OracleResponsePacketData, ResolveStatus,
-};
+

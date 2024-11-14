@@ -1,17 +1,19 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_json_binary, Binary, Deps, DepsMut, Empty, Env, IbcMsg, IbcTimeout, MessageInfo, Response,
-    StdResult, Uint256, Uint64,
+    Binary, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcTimeout, MessageInfo, Response,
+    StdResult, to_json_binary, Uint256, Uint64,
 };
+
 use cw2::set_contract_version;
+use obi::enc::OBIEncode;
+
+use cw_band::Input;
+use cw_band::packet::oracle::OracleRequestPacketData;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::{Config, Rate, ReferenceData, BAND_CONFIG, ENDPOINT, RATES};
-use obi::enc::OBIEncode;
-
-use cw_band::{Input, OracleRequestPacketData};
+use crate::state::{BAND_CONFIG, Config, ENDPOINT, Rate, RATES, ReferenceData};
 
 // WARNING /////////////////////////////////////////////////////////////////////////
 // THIS CONTRACT IS AN EXAMPLE HOW TO USE CW_BAND TO WRITE CONTRACT.              //
@@ -95,11 +97,13 @@ pub fn try_request(
         fee_limit: config.fee_limit,
     };
 
-    Ok(Response::new().add_message(IbcMsg::SendPacket {
+    let ibc_msg = IbcMsg::SendPacket {
         channel_id: endpoint.channel_id,
         data: to_json_binary(&packet)?,
         timeout: IbcTimeout::with_timestamp(env.block.time.plus_seconds(60)),
-    }))
+    };
+
+    Ok(Response::new().add_message(CosmosMsg::Ibc(ibc_msg)))
 }
 
 /// this is a no-op

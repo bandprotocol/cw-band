@@ -16,5 +16,5 @@ cosmwasm-std = "2.0.2"
 obi = "0.0.2"
 
 [dev-dependencies]
-base64 = "0.13.1"
+base64 = "0.22.1"
 hex = "0.4.3"

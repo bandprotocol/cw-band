@@ -1,19 +1,19 @@
-#[cfg(not(feature = "library"))]
-use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    attr, from_json, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannel,
+    attr, DepsMut, Env, from_json, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannel,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcOrder,
     IbcPacket, IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse,
     StdError, StdResult, Uint64,
 };
-
-use crate::error::{ContractError, Never};
-use crate::state::{Rate, ENDPOINT, RATES};
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
 use obi::dec::OBIDecode;
 
-use cw_band::{
-    ack_fail, ack_success, OracleResponsePacketData, Output, ResolveStatus, IBC_APP_VERSION,
-};
+use cw_band::ORACLE_APP_VERSION;
+use cw_band::Output;
+use cw_band::packet::oracle::{ack_fail, ack_success, OracleResponsePacketData, ResolveStatus};
+
+use crate::error::{ContractError, Never};
+use crate::state::{ENDPOINT, Rate, RATES};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 /// enforces ordering and versioning constraints
@@ -47,13 +47,13 @@ fn enforce_order_and_version(
     channel: &IbcChannel,
     counterparty_version: Option<&str>,
 ) -> Result<(), ContractError> {
-    if channel.version != IBC_APP_VERSION {
+    if channel.version != ORACLE_APP_VERSION {
         return Err(ContractError::InvalidIbcVersion {
             version: channel.version.clone(),
         });
     }
     if let Some(version) = counterparty_version {
-        if version != IBC_APP_VERSION {
+        if version != ORACLE_APP_VERSION {
             return Err(ContractError::InvalidIbcVersion {
                 version: version.to_string(),
             });
