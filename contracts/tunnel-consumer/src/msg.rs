@@ -24,4 +24,6 @@ pub enum QueryMsg {
     Admin {},
     #[returns(cosmwasm_std::IbcEndpoint)]
     TunnelConfig { tunnel_id: Uint64 },
+    #[returns(cw_band::packet::tunnel::Price)]
+    Price { signal_id: String },
 }
