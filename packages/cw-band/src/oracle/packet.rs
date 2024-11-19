@@ -61,8 +61,8 @@ pub struct BandAcknowledgement {
 
 #[cfg(test)]
 mod tests {
-    use base64::Engine;
     use base64::engine::general_purpose::STANDARD;
+    use base64::Engine;
     use cosmwasm_std::from_json;
 
     use super::*;
