@@ -1,9 +1,9 @@
+use cosmwasm_std::{
+    Addr, Binary, Deps, DepsMut, Env, IbcEndpoint, MessageInfo, Response, StdResult,
+    to_json_binary, Uint64,
+};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{
-    to_json_binary, Addr, Binary, Deps, DepsMut, Env, IbcEndpoint, MessageInfo, Response,
-    StdResult, Uint64,
-};
 use cw2::set_contract_version;
 
 use cw_band::tunnel::packet::Price;
@@ -91,4 +91,118 @@ fn query_price(deps: Deps, signal_id: String) -> StdResult<Price> {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::*;
+    use cosmwasm_std::{Addr, DepsMut, IbcChannel, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcEndpoint, IbcPacket, IbcPacketReceiveMsg, IbcReceiveResponse, IbcTimeout, Int64, OwnedDeps, Timestamp, to_json_binary};
+    use cosmwasm_std::testing::{
+        message_info, mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage,
+    };
+
+    use cw_band::tunnel::{TUNNEL_APP_VERSION, TUNNEL_ORDERING};
+    use cw_band::tunnel::packet::{ack_success, Price, Status, TunnelPacket};
+
+    use crate::ibc::{ibc_channel_connect, ibc_channel_open, ibc_packet_receive};
+    use crate::msg::{InstantiateMsg, QueryMsg};
+    use crate::state::ChannelInfo;
+
+    fn mock_channel() -> IbcChannel {
+        let ibc_endpoint = IbcEndpoint {
+            port_id: "tunnel".to_string(),
+            channel_id: "channel-1".to_string(),
+        };
+        let counterparty_endpoint = IbcEndpoint {
+            port_id: "tunnel".to_string(),
+            channel_id: "channel-2".to_string(),
+        };
+
+        IbcChannel::new(
+            ibc_endpoint,
+            counterparty_endpoint,
+            TUNNEL_ORDERING,
+            TUNNEL_APP_VERSION,
+            "connection-1",
+        )
+    }
+
+    fn add_mock_channel(mut deps: DepsMut) {
+        let channel = mock_channel();
+
+        let open_msg = IbcChannelOpenMsg::new_init(channel.clone());
+        ibc_channel_open(deps.branch(), mock_env(), open_msg).unwrap();
+        let connect_msg = IbcChannelConnectMsg::new_ack(channel, TUNNEL_APP_VERSION);
+        ibc_channel_connect(deps.branch(), mock_env(), connect_msg).unwrap();
+    }
+
+    fn setup() -> OwnedDeps<MockStorage, MockApi, MockQuerier> {
+        let mut deps = mock_dependencies();
+
+        // instantiate an empty contract
+        let instantiate_msg = InstantiateMsg {};
+        let info = message_info(&Addr::unchecked("admin"), &[]);
+        let res = instantiate(deps.as_mut(), mock_env(), info.clone(), instantiate_msg).unwrap();
+        assert_eq!(0, res.messages.len());
+
+        add_mock_channel(deps.as_mut());
+        
+        let update_tunnel_config_msg = UpdateTunnelConfigMsg {
+            tunnel_id: Uint64::from(1_u64),
+            port_id: "tunnel".to_string(),
+            channel_id: "channel-2".to_string(),
+        };
+        let exec_msg = ExecuteMsg::UpdateTunnelConfig(update_tunnel_config_msg);
+        execute(deps.as_mut(), mock_env(), info, exec_msg).unwrap();
+
+        deps
+    }
+
+    #[test]
+    fn test_recv_ibc_packet() {
+        let mut deps = setup();
+
+        let prices = vec![
+            Price::new("CS:TEST1-USD", Status::Available, 1000_u64, 1000),
+            Price::new("CS:TEST2-USD", Status::Available, 2000_u64, 1001),
+            Price::new("CS:TEST3-USD", Status::Available, 3000_u64, 1002),
+        ];
+        let tunnel_packet = TunnelPacket::new(1_u64, 360_u64, prices.clone(), Int64::from(1600000));
+
+        let ibc_endpoint = IbcEndpoint {
+            port_id: "tunnel".to_string(),
+            channel_id: "channel-1".to_string(),
+        };
+        let counterparty_endpoint = IbcEndpoint {
+            port_id: "tunnel".to_string(),
+            channel_id: "channel-2".to_string(),
+        };
+
+        let ibc_packet = IbcPacket::new(
+            to_json_binary(&tunnel_packet).unwrap(),
+            ibc_endpoint,
+            counterparty_endpoint,
+            1,
+            IbcTimeout::with_timestamp(Timestamp::from_nanos(1000000000)),
+        );
+        let ibc_packet_receive_msg =
+            IbcPacketReceiveMsg::new(ibc_packet, Addr::unchecked("relayer"));
+        let ibc_resp = ibc_packet_receive(deps.as_mut(), mock_env(), ibc_packet_receive_msg).unwrap();
+        let expected_ibc_resp = IbcReceiveResponse::new(ack_success())
+            .add_attribute("action", "receive")
+            .add_attribute("success", "true");
+        assert_eq!(ibc_resp, expected_ibc_resp);
+        
+        let test1_price = query(deps.as_ref(), mock_env(), QueryMsg::Price {
+            signal_id: "CS:TEST1-USD".to_string(),
+        }).unwrap();
+        assert_eq!(test1_price, to_json_binary(&prices[0]).unwrap());
+
+        let test2_price = query(deps.as_ref(), mock_env(), QueryMsg::Price {
+            signal_id: "CS:TEST2-USD".to_string(),
+        }).unwrap();
+        assert_eq!(test2_price, to_json_binary(&prices[1]).unwrap());
+
+        let test3_price = query(deps.as_ref(), mock_env(), QueryMsg::Price {
+            signal_id: "CS:TEST3-USD".to_string(),
+        }).unwrap();
+        assert_eq!(test3_price, to_json_binary(&prices[2]).unwrap());
+    }
+}

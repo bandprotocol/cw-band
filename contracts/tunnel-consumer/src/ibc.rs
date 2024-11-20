@@ -6,8 +6,8 @@ use cosmwasm_std::{
     IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, Never, StdAck,
 };
 
-use cw_band::tunnel::packet::{ack_fail, ack_success, TunnelPacketData};
-use cw_band::tunnel::{TUNNEL_APP_VERSION, TUNNEL_ORDER};
+use cw_band::tunnel::packet::{ack_fail, ack_success, TunnelPacket};
+use cw_band::tunnel::{TUNNEL_APP_VERSION, TUNNEL_ORDERING};
 
 use crate::state::{SIGNAL_PRICE, TUNNEL_CONFIG};
 use crate::ContractError;
@@ -111,7 +111,7 @@ fn enforce_order_and_version(
     }
 
     // IBC channel must be unordered
-    if channel.order != TUNNEL_ORDER {
+    if channel.order != TUNNEL_ORDERING {
         return Err(ContractError::InvalidChannelOrder {});
     }
 
@@ -122,7 +122,7 @@ fn do_ibc_packet_receive(
     deps: DepsMut,
     packet: &IbcPacket,
 ) -> Result<IbcReceiveResponse, ContractError> {
-    let tunnel_packet: TunnelPacketData = from_json(&packet.data)?;
+    let tunnel_packet: TunnelPacket = from_json(&packet.data)?;
 
     let config = TUNNEL_CONFIG
         .load(deps.storage, &tunnel_packet.tunnel_id.to_string())

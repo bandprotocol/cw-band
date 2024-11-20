@@ -20,6 +20,16 @@ pub struct ChannelInfo {
     pub connection_id: String,
 }
 
+impl ChannelInfo {
+    pub fn new(channel_id: String, counterparty_endpoint: IbcEndpoint, connection_id: String) -> Self {
+        ChannelInfo {
+            channel_id,
+            counterparty_endpoint,
+            connection_id,
+        }
+    }
+}
+
 impl From<IbcChannel> for ChannelInfo {
     fn from(value: IbcChannel) -> Self {
         let channel_id = value.endpoint.channel_id;
