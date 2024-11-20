@@ -21,7 +21,11 @@ pub struct ChannelInfo {
 }
 
 impl ChannelInfo {
-    pub fn new(channel_id: String, counterparty_endpoint: IbcEndpoint, connection_id: String) -> Self {
+    pub fn new(
+        channel_id: String,
+        counterparty_endpoint: IbcEndpoint,
+        connection_id: String,
+    ) -> Self {
         ChannelInfo {
             channel_id,
             counterparty_endpoint,
