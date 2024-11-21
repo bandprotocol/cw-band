@@ -151,7 +151,7 @@ mod tests {
         let update_tunnel_config_msg = UpdateTunnelConfigMsg {
             tunnel_id: Uint64::from(1_u64),
             port_id: "tunnel".to_string(),
-            channel_id: "channel-2".to_string(),
+            channel_id: "channel-1".to_string(),
         };
         let exec_msg = ExecuteMsg::UpdateTunnelConfig(update_tunnel_config_msg);
         execute(deps.as_mut(), mock_env(), info, exec_msg).unwrap();
@@ -181,8 +181,8 @@ mod tests {
 
         let ibc_packet = IbcPacket::new(
             to_json_binary(&tunnel_packet).unwrap(),
-            ibc_endpoint,
             counterparty_endpoint,
+            ibc_endpoint,
             1,
             IbcTimeout::with_timestamp(Timestamp::from_nanos(1000000000)),
         );
