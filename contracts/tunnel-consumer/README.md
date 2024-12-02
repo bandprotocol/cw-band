@@ -1,4 +1,4 @@
-# Price feed contract
+# Tunnel Consumer Contract
 
 ## Overview
 

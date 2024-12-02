@@ -1,8 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_json_binary, Addr, Binary, Deps, DepsMut, Env, IbcEndpoint, MessageInfo, Response,
-    StdResult, Uint64,
+    to_json_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint64,
 };
 use cw2::set_contract_version;
 
@@ -10,7 +9,7 @@ use cw_band::tunnel::packet::Price;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, UpdateTunnelConfigMsg};
-use crate::state::{ADMIN, SIGNAL_PRICE, TUNNEL_CONFIG};
+use crate::state::{TunnelConfig, ADMIN, SIGNAL_PRICE, TUNNEL_CONFIG};
 
 const CONTRACT_NAME: &str = "crates.io:tunnel-consumer";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -59,11 +58,13 @@ pub fn execute_set_tunnel_config(
     let port_id = msg.port_id;
     let channel_id = msg.channel_id;
 
-    let ibc_endpoint = IbcEndpoint {
+    let tunnel_config = TunnelConfig {
+        tunnel_id,
         port_id,
         channel_id,
     };
-    TUNNEL_CONFIG.save(deps.storage, &tunnel_id.to_string(), &ibc_endpoint)?;
+
+    TUNNEL_CONFIG.save(deps.storage, &tunnel_id.to_string(), &tunnel_config)?;
 
     Ok(Response::default())
 }
@@ -82,7 +83,7 @@ fn query_admin(deps: Deps) -> StdResult<Option<Addr>> {
     ADMIN.get(deps)
 }
 
-fn query_tunnel_config(deps: Deps, tunnel_id: Uint64) -> StdResult<IbcEndpoint> {
+fn query_tunnel_config(deps: Deps, tunnel_id: Uint64) -> StdResult<TunnelConfig> {
     TUNNEL_CONFIG.load(deps.storage, &tunnel_id.to_string())
 }
 
@@ -102,7 +103,7 @@ mod tests {
     };
 
     use cw_band::tunnel::packet::{ack_success, Price, Status, TunnelPacket};
-    use cw_band::tunnel::{TUNNEL_APP_VERSION, TUNNEL_ORDERING};
+    use cw_band::tunnel::{TUNNEL_APP_VERSION, TUNNEL_ORDER};
 
     use crate::ibc::{ibc_channel_connect, ibc_channel_open, ibc_packet_receive};
     use crate::msg::{InstantiateMsg, QueryMsg};
@@ -122,7 +123,7 @@ mod tests {
         IbcChannel::new(
             ibc_endpoint,
             counterparty_endpoint,
-            TUNNEL_ORDERING,
+            TUNNEL_ORDER,
             TUNNEL_APP_VERSION,
             "connection-1",
         )

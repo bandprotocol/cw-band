@@ -7,7 +7,7 @@ use cosmwasm_std::{
 };
 
 use cw_band::tunnel::packet::{ack_fail, ack_success, TunnelPacket};
-use cw_band::tunnel::{TUNNEL_APP_VERSION, TUNNEL_ORDERING};
+use cw_band::tunnel::{TUNNEL_APP_VERSION, TUNNEL_ORDER};
 
 use crate::state::{SIGNAL_PRICE, TUNNEL_CONFIG};
 use crate::ContractError;
@@ -111,7 +111,7 @@ fn enforce_order_and_version(
     }
 
     // IBC channel must be unordered
-    if channel.order != TUNNEL_ORDERING {
+    if channel.order != TUNNEL_ORDER {
         return Err(ContractError::InvalidChannelOrder {});
     }
 
@@ -130,6 +130,11 @@ fn do_ibc_packet_receive(
 
     // Only allow destination port and channel
     if packet.dest.port_id != config.port_id || packet.dest.channel_id != config.channel_id {
+        return Err(ContractError::Unauthorized {});
+    }
+
+    // Only allow tunnel id
+    if tunnel_packet.tunnel_id != config.tunnel_id {
         return Err(ContractError::Unauthorized {});
     }
 
