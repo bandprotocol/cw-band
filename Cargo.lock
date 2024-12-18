@@ -1146,12 +1146,24 @@ dependencies = [
  "cosmwasm-std",
  "cw-band",
  "cw-controllers",
- "cw-multi-test",
+ "cw-storage-plus",
+ "cw2",
+ "thiserror 2.0.3",
+]
+
+[[package]]
+name = "tunnel-consumer-ibc-hook"
+version = "0.1.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-band",
+ "cw-controllers",
  "cw-storage-plus",
  "cw2",
  "schemars",
  "serde",
- "thiserror 2.0.3",
+ "thiserror 1.0.59",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-use cosmwasm_std::StdError;
+use cosmwasm_std::{IbcOrder, StdError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -10,8 +10,14 @@ pub enum ContractError {
     Unauthorized,
 
     #[error("Invalid tunnel version")]
-    InvalidTunnelVersion,
+    InvalidTunnelVersion {
+        actual: String,
+        expected: String,
+    },
 
     #[error("Invalid channel order")]
-    InvalidChannelOrder,
+    InvalidChannelOrder {
+        actual: IbcOrder,
+        expected: IbcOrder,
+    },
 }

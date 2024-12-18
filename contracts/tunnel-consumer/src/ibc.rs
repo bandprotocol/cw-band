@@ -68,20 +68,11 @@ pub fn ibc_packet_receive(
 pub fn ibc_packet_ack(
     _deps: DepsMut,
     _env: Env,
-    msg: IbcPacketAckMsg,
+    _msg: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, ContractError> {
-    let std_ack: StdAck = from_json(&msg.acknowledgement.data)?;
-    let res = match std_ack {
-        StdAck::Success(_) => IbcBasicResponse::new()
-            .add_attribute("action", "acknowledge")
-            .add_attribute("success", "true"),
-        StdAck::Error(err) => IbcBasicResponse::new()
-            .add_attribute("action", "acknowledge")
-            .add_attribute("success", "false")
-            .add_attribute("error", err),
-    };
-
-    Ok(res)
+    Ok(IbcBasicResponse::default()
+        .add_attribute("action", "acknowledge")
+        .add_attribute("success", "true"))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -102,17 +93,26 @@ fn enforce_order_and_version(
 ) -> Result<(), ContractError> {
     // Check channel version
     if channel.version != TUNNEL_APP_VERSION {
-        return Err(ContractError::InvalidTunnelVersion);
+        return Err(ContractError::InvalidTunnelVersion {
+            actual: channel.version.clone(),
+            expected: TUNNEL_APP_VERSION.to_string(),
+        });
     }
     if let Some(version) = counterparty_version {
         if version != TUNNEL_APP_VERSION {
-            return Err(ContractError::InvalidTunnelVersion);
+            return Err(ContractError::InvalidTunnelVersion {
+                actual: version.to_string(),
+                expected: TUNNEL_APP_VERSION.to_string(),
+            });
         }
     }
 
     // IBC channel must be unordered
     if channel.order != TUNNEL_ORDER {
-        return Err(ContractError::InvalidChannelOrder {});
+        return Err(ContractError::InvalidChannelOrder {
+            actual: channel.order.clone(),
+            expected: TUNNEL_ORDER,
+        });
     }
 
     Ok(())
