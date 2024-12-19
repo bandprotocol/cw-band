@@ -9,7 +9,7 @@ use cosmwasm_std::{
 use cw_band::tunnel::packet::{ack_fail, ack_success, TunnelPacket};
 use cw_band::tunnel::{TUNNEL_APP_VERSION, TUNNEL_ORDER};
 
-use crate::state::{SIGNAL_PRICE, TUNNEL_CONFIG};
+use crate::state::{ALLOWABLE_TUNNEL_IDS, SIGNAL_PRICE};
 use crate::ContractError;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -48,12 +48,12 @@ pub fn ibc_channel_close(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn ibc_packet_receive(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     msg: IbcPacketReceiveMsg,
 ) -> Result<IbcReceiveResponse, Never> {
     let packet = msg.packet;
 
-    do_ibc_packet_receive(deps, &packet).or_else(|err| {
+    do_ibc_packet_receive(deps, env, &packet).or_else(|err| {
         Ok(
             IbcReceiveResponse::new(ack_fail(err.to_string())).add_attributes(vec![
                 attr("action", "receive"),
@@ -120,21 +120,18 @@ fn enforce_order_and_version(
 
 fn do_ibc_packet_receive(
     deps: DepsMut,
+    env: Env,
     packet: &IbcPacket,
 ) -> Result<IbcReceiveResponse, ContractError> {
     let tunnel_packet: TunnelPacket = from_json(&packet.data)?;
 
-    let config = TUNNEL_CONFIG
-        .load(deps.storage, &tunnel_packet.tunnel_id.to_string())
-        .map_err(|_| ContractError::Unauthorized {})?;
-
-    // Only allow destination port and channel
-    if packet.dest.port_id != config.port_id || packet.dest.channel_id != config.channel_id {
-        return Err(ContractError::Unauthorized {});
-    }
-
-    // Only allow tunnel id
-    if tunnel_packet.tunnel_id != config.tunnel_id {
+    let contract_addr = env.contract.address.to_string();
+    println!("{}", packet.dest.port_id);
+    println!("{}", packet.src.port_id);
+    if packet.dest.port_id != format!("wasm.{}", contract_addr)
+        || packet.src.port_id != TUNNEL_APP_VERSION
+        || !ALLOWABLE_TUNNEL_IDS.has(deps.storage, &packet.dest.channel_id)
+    {
         return Err(ContractError::Unauthorized {});
     }
 

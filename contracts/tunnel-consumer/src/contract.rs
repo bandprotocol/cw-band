@@ -1,15 +1,15 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_json_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint64,
+    to_json_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 use cw2::set_contract_version;
 
 use cw_band::tunnel::packet::Price;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, UpdateTunnelConfigMsg};
-use crate::state::{TunnelConfig, ADMIN, SIGNAL_PRICE, TUNNEL_CONFIG};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::state::{ADMIN, ALLOWABLE_TUNNEL_IDS, SIGNAL_PRICE};
 
 const CONTRACT_NAME: &str = "crates.io:tunnel-consumer";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -41,30 +41,43 @@ pub fn execute(
                 .execute_update_admin(deps, info, Some(admin_addr))
                 .map_err(|_| ContractError::Unauthorized)
         }
-        ExecuteMsg::UpdateTunnelConfig(msg) => execute_set_tunnel_config(deps, info, msg),
+        ExecuteMsg::AddAllowableChannelIds { channel_ids } => {
+            add_allowable_channel_ids(deps, info, channel_ids)
+        }
+        ExecuteMsg::RemoveAllowableChannelIds { channel_ids } => {
+            remove_allowable_channel_ids(deps, info, channel_ids)
+        }
     }
 }
 
-pub fn execute_set_tunnel_config(
+pub fn add_allowable_channel_ids(
     deps: DepsMut,
     info: MessageInfo,
-    msg: UpdateTunnelConfigMsg,
+    channel_ids: Vec<String>,
 ) -> Result<Response, ContractError> {
     ADMIN
         .assert_admin(deps.as_ref(), &info.sender)
         .map_err(|_| ContractError::Unauthorized)?;
 
-    let tunnel_id = msg.tunnel_id;
-    let port_id = msg.port_id;
-    let channel_id = msg.channel_id;
+    for channel_id in channel_ids.iter() {
+        ALLOWABLE_TUNNEL_IDS.save(deps.storage, channel_id, &())?;
+    }
 
-    let tunnel_config = TunnelConfig {
-        tunnel_id,
-        port_id,
-        channel_id,
-    };
+    Ok(Response::default())
+}
 
-    TUNNEL_CONFIG.save(deps.storage, &tunnel_id.to_string(), &tunnel_config)?;
+pub fn remove_allowable_channel_ids(
+    deps: DepsMut,
+    info: MessageInfo,
+    channel_ids: Vec<String>,
+) -> Result<Response, ContractError> {
+    ADMIN
+        .assert_admin(deps.as_ref(), &info.sender)
+        .map_err(|_| ContractError::Unauthorized)?;
+
+    for channel_id in channel_ids.iter() {
+        ALLOWABLE_TUNNEL_IDS.remove(deps.storage, channel_id);
+    }
 
     Ok(Response::default())
 }
@@ -73,22 +86,29 @@ pub fn execute_set_tunnel_config(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Admin {} => to_json_binary(&query_admin(deps)?),
-        QueryMsg::TunnelConfig { tunnel_id } => {
-            to_json_binary(&query_tunnel_config(deps, tunnel_id)?)
+        QueryMsg::IsChannelIdAllowed { channel_id } => {
+            to_json_binary(&query_is_channel_id_allowed(deps, channel_id))
         }
         QueryMsg::Price { signal_id } => to_json_binary(&query_price(deps, signal_id)?),
+        QueryMsg::Prices { signal_ids } => {
+            let prices = signal_ids
+                .iter()
+                .map(|signal_id| query_price(deps, signal_id.to_string()))
+                .collect::<StdResult<Vec<Option<Price>>>>()?;
+            to_json_binary(&prices)
+        }
     }
 }
 fn query_admin(deps: Deps) -> StdResult<Option<Addr>> {
     ADMIN.get(deps)
 }
 
-fn query_tunnel_config(deps: Deps, tunnel_id: Uint64) -> StdResult<TunnelConfig> {
-    TUNNEL_CONFIG.load(deps.storage, &tunnel_id.to_string())
+fn query_is_channel_id_allowed(deps: Deps, channel_id: String) -> bool {
+    ALLOWABLE_TUNNEL_IDS.has(deps.storage, &channel_id)
 }
 
-fn query_price(deps: Deps, signal_id: String) -> StdResult<Price> {
-    SIGNAL_PRICE.load(deps.storage, &signal_id)
+fn query_price(deps: Deps, signal_id: String) -> StdResult<Option<Price>> {
+    SIGNAL_PRICE.may_load(deps.storage, &signal_id)
 }
 
 #[cfg(test)]
@@ -111,18 +131,18 @@ mod tests {
     use super::*;
 
     fn mock_channel() -> IbcChannel {
-        let ibc_endpoint = IbcEndpoint {
-            port_id: "tunnel".to_string(),
+        let bandchain_endpoint = IbcEndpoint {
+            port_id: "tunnel-1".to_string(),
             channel_id: "channel-1".to_string(),
         };
-        let counterparty_endpoint = IbcEndpoint {
-            port_id: "tunnel".to_string(),
+        let contract_endpoint = IbcEndpoint {
+            port_id: format!("wasm.{}", mock_env().contract.address),
             channel_id: "channel-2".to_string(),
         };
 
         IbcChannel::new(
-            ibc_endpoint,
-            counterparty_endpoint,
+            bandchain_endpoint,
+            contract_endpoint,
             TUNNEL_ORDER,
             TUNNEL_APP_VERSION,
             "connection-1",
@@ -149,12 +169,9 @@ mod tests {
 
         add_mock_channel(deps.as_mut());
 
-        let update_tunnel_config_msg = UpdateTunnelConfigMsg {
-            tunnel_id: Uint64::from(1_u64),
-            port_id: "tunnel".to_string(),
-            channel_id: "channel-1".to_string(),
+        let exec_msg = ExecuteMsg::AddAllowableChannelIds {
+            channel_ids: vec!["channel-2".to_string()],
         };
-        let exec_msg = ExecuteMsg::UpdateTunnelConfig(update_tunnel_config_msg);
         execute(deps.as_mut(), mock_env(), info, exec_msg).unwrap();
 
         deps
@@ -171,19 +188,14 @@ mod tests {
         ];
         let tunnel_packet = TunnelPacket::new(1_u64, 360_u64, prices.clone(), Int64::from(1600000));
 
-        let ibc_endpoint = IbcEndpoint {
-            port_id: "tunnel".to_string(),
-            channel_id: "channel-1".to_string(),
-        };
-        let counterparty_endpoint = IbcEndpoint {
-            port_id: "tunnel".to_string(),
-            channel_id: "channel-2".to_string(),
-        };
-
+        let mock_channel = mock_channel();
+        let bandchain_ibc_endpoint = mock_channel.endpoint.clone();
+        let contract_ibc_endpoint = mock_channel.counterparty_endpoint;
+        
         let ibc_packet = IbcPacket::new(
             to_json_binary(&tunnel_packet).unwrap(),
-            counterparty_endpoint,
-            ibc_endpoint,
+            bandchain_ibc_endpoint,
+            contract_ibc_endpoint,
             1,
             IbcTimeout::with_timestamp(Timestamp::from_nanos(1000000000)),
         );

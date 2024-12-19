@@ -1,20 +1,23 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Uint64;
 
 #[cw_serde]
 pub struct InstantiateMsg {}
 
 #[cw_serde]
-pub struct UpdateTunnelConfigMsg {
-    pub tunnel_id: Uint64,
-    pub port_id: String,
-    pub channel_id: String,
+pub struct AddAllowableChannelIdsMsg {
+    pub channel_ids: Vec<String>,
+}
+
+#[cw_serde]
+pub struct RemoveAllowableChannelIdsMsg {
+    pub channel_ids: Vec<String>,
 }
 
 #[cw_serde]
 pub enum ExecuteMsg {
     UpdateAdmin { admin: String },
-    UpdateTunnelConfig(UpdateTunnelConfigMsg),
+    AddAllowableChannelIds { channel_ids: Vec<String> },
+    RemoveAllowableChannelIds { channel_ids: Vec<String> },
 }
 
 #[cw_serde]
@@ -22,8 +25,10 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     #[returns(Option<cosmwasm_std::Addr>)]
     Admin {},
-    #[returns(cosmwasm_std::IbcEndpoint)]
-    TunnelConfig { tunnel_id: Uint64 },
-    #[returns(cw_band::tunnel::packet::Price)]
+    #[returns(bool)]
+    IsChannelIdAllowed { channel_id: String },
+    #[returns(Option<cw_band::tunnel::packet::Price>)]
     Price { signal_id: String },
+    #[returns(Vec<Option<cw_band::tunnel::packet::Price>>)]
+    Prices { signal_ids: Vec<String> },
 }
