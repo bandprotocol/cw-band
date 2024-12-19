@@ -9,7 +9,7 @@ You can request 4 symbols on [oracle script id: 360](https://laozi-testnet6.cosm
 ## Config example
 
 ```
-client_id: String -> Arbitary string for your request
+client_id: String -> Arbitrary string for your request
 oracle_script_id: Uint64, -> Please use oracle script id 360
 ask_count: Uint64, -> The number of validator you want to ask (Recommend: 4 on testnet)
 min_count: Uint64, -> The minimum number of validator need to answer to aggregate result (Recommend: 3 on testnet)
