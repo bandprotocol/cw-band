@@ -21,7 +21,7 @@ pub struct InstantiateMsg {
     pub execute_gas: Uint64,
     // Minimum number of sources required to return a successful response
     pub minimum_sources: u8,
-    // The minimum amount that sender need to send to create a new oracle request
+    // The minimum amount that sender needs to send to create a new oracle request
     pub fee: Vec<Coin>,
 }
 
