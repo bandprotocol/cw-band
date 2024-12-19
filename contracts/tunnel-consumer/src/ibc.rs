@@ -126,8 +126,6 @@ fn do_ibc_packet_receive(
     let tunnel_packet: TunnelPacket = from_json(&packet.data)?;
 
     let contract_addr = env.contract.address.to_string();
-    println!("{}", packet.dest.port_id);
-    println!("{}", packet.src.port_id);
     if packet.dest.port_id != format!("wasm.{}", contract_addr)
         || packet.src.port_id != TUNNEL_APP_VERSION
         || !ALLOWABLE_TUNNEL_IDS.has(deps.storage, &packet.dest.channel_id)

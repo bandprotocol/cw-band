@@ -191,7 +191,7 @@ mod tests {
         let mock_channel = mock_channel();
         let bandchain_ibc_endpoint = mock_channel.endpoint.clone();
         let contract_ibc_endpoint = mock_channel.counterparty_endpoint;
-        
+
         let ibc_packet = IbcPacket::new(
             to_json_binary(&tunnel_packet).unwrap(),
             bandchain_ibc_endpoint,
