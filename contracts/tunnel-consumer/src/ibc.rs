@@ -127,7 +127,6 @@ fn do_ibc_packet_receive(
 
     let contract_addr = env.contract.address.to_string();
     if packet.dest.port_id != format!("wasm.{}", contract_addr)
-        || packet.src.port_id != TUNNEL_APP_VERSION
         || !ALLOWABLE_TUNNEL_IDS.has(deps.storage, &packet.dest.channel_id)
     {
         return Err(ContractError::Unauthorized {});
