@@ -9,7 +9,7 @@ use cw_band::tunnel::packet::Price;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::{ADMIN, ALLOWABLE_TUNNEL_IDS, SIGNAL_PRICE};
+use crate::state::{ADMIN, ALLOWABLE_CHANNEL_IDS, SIGNAL_PRICE};
 
 const CONTRACT_NAME: &str = "crates.io:tunnel-consumer";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -60,7 +60,7 @@ pub fn add_allowable_channel_ids(
         .map_err(|_| ContractError::Unauthorized)?;
 
     for channel_id in channel_ids.iter() {
-        ALLOWABLE_TUNNEL_IDS.save(deps.storage, channel_id, &())?;
+        ALLOWABLE_CHANNEL_IDS.save(deps.storage, channel_id, &())?;
     }
 
     Ok(Response::default())
@@ -76,7 +76,7 @@ pub fn remove_allowable_channel_ids(
         .map_err(|_| ContractError::Unauthorized)?;
 
     for channel_id in channel_ids.iter() {
-        ALLOWABLE_TUNNEL_IDS.remove(deps.storage, channel_id);
+        ALLOWABLE_CHANNEL_IDS.remove(deps.storage, channel_id);
     }
 
     Ok(Response::default())
@@ -104,7 +104,7 @@ fn query_admin(deps: Deps) -> StdResult<Option<Addr>> {
 }
 
 fn query_is_channel_id_allowed(deps: Deps, channel_id: String) -> bool {
-    ALLOWABLE_TUNNEL_IDS.has(deps.storage, &channel_id)
+    ALLOWABLE_CHANNEL_IDS.has(deps.storage, &channel_id)
 }
 
 fn query_price(deps: Deps, signal_id: String) -> StdResult<Option<Price>> {

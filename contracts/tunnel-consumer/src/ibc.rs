@@ -9,7 +9,7 @@ use cosmwasm_std::{
 use cw_band::tunnel::packet::{ack_fail, ack_success, TunnelPacket};
 use cw_band::tunnel::{TUNNEL_APP_VERSION, TUNNEL_ORDER};
 
-use crate::state::{ALLOWABLE_TUNNEL_IDS, SIGNAL_PRICE};
+use crate::state::{ALLOWABLE_CHANNEL_IDS, SIGNAL_PRICE};
 use crate::ContractError;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -127,7 +127,7 @@ fn do_ibc_packet_receive(
 
     let contract_addr = env.contract.address.to_string();
     if packet.dest.port_id != format!("wasm.{}", contract_addr)
-        || !ALLOWABLE_TUNNEL_IDS.has(deps.storage, &packet.dest.channel_id)
+        || !ALLOWABLE_CHANNEL_IDS.has(deps.storage, &packet.dest.channel_id)
     {
         return Err(ContractError::Unauthorized {});
     }
