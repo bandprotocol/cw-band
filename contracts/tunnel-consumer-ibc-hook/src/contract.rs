@@ -1,6 +1,6 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 use cw_band::tunnel::packet::{Price, TunnelPacket};
 
@@ -96,14 +96,14 @@ pub fn execute_receive_packet(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(_deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
    match msg {
-       QueryMsg::Prices { signal_id } => query_price(&query_price(deps, signal_id)?),
+       QueryMsg::Prices { signal_ids } => to_json_binary(&query_prices(deps, signal_ids)?),
    }
 }
 
-fn query_price(deps: Deps, signal_id: String) -> StdResult<Price> {
-    SIGNAL_PRICE.load(deps.storage, &signal_id)
+fn query_prices(deps: Deps, signal_ids: Vec<String>) -> StdResult<Vec<Option<Price>>> {
+    signal_ids.iter().map(|id| SIGNAL_PRICE.may_load(deps.storage, id)).collect()
 }
 
 #[cfg(test)]

@@ -28,7 +28,8 @@ pub struct SetTunnelConfigMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
+    #[returns(Vec<Option<cw_band::tunnel::packet::Price>>)]
     Prices {
-        signal_id: String,
+        signal_ids: Vec<String>,
     },
 }
