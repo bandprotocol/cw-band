@@ -1,4 +1,3 @@
-use crate::state::{Rate, ReferenceData};
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Coin, Uint64};
 
@@ -33,13 +32,13 @@ pub enum ExecuteMsg {
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
-    #[returns(Rate)]
+    #[returns(crate::state::Rate)]
     // Returns the RefData of a given symbol
     GetRate {
         // Symbol to query
         symbol: String,
     },
-    #[returns(ReferenceData)]
+    #[returns(crate::state::ReferenceData)]
     // Returns the ReferenceData of a given asset pairing
     GetReferenceData {
         // Symbol pair to query where:
@@ -47,7 +46,7 @@ pub enum QueryMsg {
         // e.g. BTC/USD ≡ ("BTC", "USD")
         symbol_pair: (String, String),
     },
-    #[returns(Vec<ReferenceData>)]
+    #[returns(Vec<crate::state::ReferenceData>)]
     // Returns the ReferenceDatas of the given asset pairings
     GetReferenceDataBulk {
         // Vector of Symbol pair to query

@@ -61,17 +61,17 @@ pub struct BandAcknowledgement {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use base64::decode;
     use cosmwasm_std::from_json;
+
+    use super::*;
 
     #[test]
     fn test_serialize_request_packet() {
-        let calldata = base64::decode("AAAAAgAAAANCVEMAAAADRVRIAQ==").unwrap();
+        let calldata = Binary::from_base64("AAAAAgAAAANCVEMAAAADRVRIAQ==").unwrap();
         let packet = OracleRequestPacketData {
             client_id: "1".into(),
             oracle_script_id: Uint64::from(360u64),
-            calldata: Binary::new(calldata),
+            calldata,
             ask_count: Uint64::from(1u64),
             min_count: Uint64::from(1u64),
             fee_limit: vec![Coin::new(1000u64, "uband")],
@@ -84,7 +84,8 @@ mod tests {
 
     #[test]
     fn test_deserialize_response_packet() {
-        let packet = from_json::<OracleResponsePacketData>(&decode("eyJhbnNfY291bnQiOiIxNiIsImNsaWVudF9pZCI6IjQxMTg2MTEiLCJyZXF1ZXN0X2lkIjoiMTM4NTk4OTkiLCJyZXF1ZXN0X3RpbWUiOiIxNjY5NzkwNDQ1IiwicmVzb2x2ZV9zdGF0dXMiOiJSRVNPTFZFX1NUQVRVU19TVUNDRVNTIiwicmVzb2x2ZV90aW1lIjoiMTY2OTc5MDQ1MSIsInJlc3VsdCI6IkFBQUFCQUFBQUFBdld4dWdBQUFBQW1jZHVIQUFBQUFBQTlzK1h3QUFBQUFQTHdtRyJ9").unwrap()).unwrap();
+        let decoded = Binary::from_base64("eyJhbnNfY291bnQiOiIxNiIsImNsaWVudF9pZCI6IjQxMTg2MTEiLCJyZXF1ZXN0X2lkIjoiMTM4NTk4OTkiLCJyZXF1ZXN0X3RpbWUiOiIxNjY5NzkwNDQ1IiwicmVzb2x2ZV9zdGF0dXMiOiJSRVNPTFZFX1NUQVRVU19TVUNDRVNTIiwicmVzb2x2ZV90aW1lIjoiMTY2OTc5MDQ1MSIsInJlc3VsdCI6IkFBQUFCQUFBQUFBdld4dWdBQUFBQW1jZHVIQUFBQUFBQTlzK1h3QUFBQUFQTHdtRyJ9").unwrap();
+        let packet = from_json::<OracleResponsePacketData>(decoded).unwrap();
 
         assert_eq!(packet.resolve_status, ResolveStatus::Success);
         assert_eq!(packet.request_id, Uint64::from(13859899u64))

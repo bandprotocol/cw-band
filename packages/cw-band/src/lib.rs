@@ -1,10 +1,5 @@
-mod channel;
-mod crypto;
-mod packet;
+#[cfg(feature = "tunnel")]
+pub mod tunnel;
 
-pub use channel::IBC_APP_VERSION;
-pub use crypto::{Input, Output, Response};
-pub use packet::{
-    ack_fail, ack_success, AcknowledgementMsg, BandAcknowledgement, OracleRequestPacketData,
-    OracleResponsePacketData, ResolveStatus,
-};
+#[cfg(feature = "oracle")]
+pub mod oracle;

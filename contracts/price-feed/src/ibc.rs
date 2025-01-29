@@ -6,14 +6,14 @@ use cosmwasm_std::{
     IbcPacket, IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse,
     StdError, StdResult, Uint64,
 };
+use obi::dec::OBIDecode;
+
+use cw_band::oracle::oracle_script::std_crypto::Output;
+use cw_band::oracle::packet::{ack_fail, ack_success, OracleResponsePacketData, ResolveStatus};
+use cw_band::oracle::ORACLE_APP_VERSION;
 
 use crate::error::{ContractError, Never};
 use crate::state::{Rate, ENDPOINT, RATES};
-use obi::dec::OBIDecode;
-
-use cw_band::{
-    ack_fail, ack_success, OracleResponsePacketData, Output, ResolveStatus, IBC_APP_VERSION,
-};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 /// enforces ordering and versioning constraints
@@ -47,13 +47,13 @@ fn enforce_order_and_version(
     channel: &IbcChannel,
     counterparty_version: Option<&str>,
 ) -> Result<(), ContractError> {
-    if channel.version != IBC_APP_VERSION {
+    if channel.version != ORACLE_APP_VERSION {
         return Err(ContractError::InvalidIbcVersion {
             version: channel.version.clone(),
         });
     }
     if let Some(version) = counterparty_version {
-        if version != IBC_APP_VERSION {
+        if version != ORACLE_APP_VERSION {
             return Err(ContractError::InvalidIbcVersion {
                 version: version.to_string(),
             });
@@ -65,7 +65,7 @@ fn enforce_order_and_version(
     Ok(())
 }
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 pub fn ibc_channel_close(
     _deps: DepsMut,
     _env: Env,
@@ -74,7 +74,7 @@ pub fn ibc_channel_close(
     unimplemented!();
 }
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 pub fn ibc_packet_receive(
     deps: DepsMut,
     _env: Env,
@@ -123,7 +123,7 @@ fn do_ibc_packet_receive(
     Ok(IbcReceiveResponse::new(ack_success()).add_attribute("action", "ibc_packet_received"))
 }
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 pub fn ibc_packet_ack(
     _deps: DepsMut,
     _env: Env,
@@ -133,7 +133,7 @@ pub fn ibc_packet_ack(
     Ok(IbcBasicResponse::new().add_attribute("action", "ibc_packet_ack"))
 }
 
-#[entry_point]
+#[cfg_attr(not(feature = "library"), entry_point)]
 /// TODO: Handle when didn't get response packet in time
 pub fn ibc_packet_timeout(
     _deps: DepsMut,
