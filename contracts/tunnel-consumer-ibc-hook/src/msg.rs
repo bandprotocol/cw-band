@@ -1,35 +1,30 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, Int64, Uint64};
-use cw_band::tunnel::packet::{Price, TunnelPacket};
+use cosmwasm_std::Addr;
+use cw_band::tunnel::packet::TunnelPacket;
 
 #[cw_serde]
 pub struct InstantiateMsg {}
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    ReceivePacket {
-        packet: TunnelPacket
-    },
-    SetTunnelConfig {
-        msg: SetTunnelConfigMsg
-    },
-
+    ReceivePacket { packet: TunnelPacket },
+    AddSenders { msg: AddSendersMsg },
+    RemoveSenders { msg: RemoveSendersMsg },
 }
 
 #[cw_serde]
-pub struct SetTunnelConfigMsg {
-    pub tunnel_id: Uint64,
-    pub sender: Addr,
-    pub port_id: String,
-    pub channel_id: String,
+pub struct AddSendersMsg {
+    pub senders: Vec<Addr>,
 }
 
+#[cw_serde]
+pub struct RemoveSendersMsg {
+    pub senders: Vec<Addr>,
+}
 
 #[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     #[returns(Vec<Option<cw_band::tunnel::packet::Price>>)]
-    Prices {
-        signal_ids: Vec<String>,
-    },
+    Prices { signal_ids: Vec<String> },
 }

@@ -1161,8 +1161,6 @@ dependencies = [
  "cw-controllers",
  "cw-storage-plus",
  "cw2",
- "schemars",
- "serde",
  "thiserror 1.0.59",
 ]
 

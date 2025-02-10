@@ -36,42 +36,52 @@
       {
         "type": "object",
         "required": [
-          "update_tunnel_config"
+          "add_allowable_channel_ids"
         ],
         "properties": {
-          "update_tunnel_config": {
-            "$ref": "#/definitions/UpdateTunnelConfigMsg"
+          "add_allowable_channel_ids": {
+            "type": "object",
+            "required": [
+              "channel_ids"
+            ],
+            "properties": {
+              "channel_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
-      }
-    ],
-    "definitions": {
-      "Uint64": {
-        "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
-        "type": "string"
       },
-      "UpdateTunnelConfigMsg": {
+      {
         "type": "object",
         "required": [
-          "channel_id",
-          "port_id",
-          "tunnel_id"
+          "remove_allowable_channel_ids"
         ],
         "properties": {
-          "channel_id": {
-            "type": "string"
-          },
-          "port_id": {
-            "type": "string"
-          },
-          "tunnel_id": {
-            "$ref": "#/definitions/Uint64"
+          "remove_allowable_channel_ids": {
+            "type": "object",
+            "required": [
+              "channel_ids"
+            ],
+            "properties": {
+              "channel_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
       }
-    }
+    ]
   },
   "query": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -93,17 +103,17 @@
       {
         "type": "object",
         "required": [
-          "tunnel_config"
+          "is_channel_id_allowed"
         ],
         "properties": {
-          "tunnel_config": {
+          "is_channel_id_allowed": {
             "type": "object",
             "required": [
-              "tunnel_id"
+              "channel_id"
             ],
             "properties": {
-              "tunnel_id": {
-                "$ref": "#/definitions/Uint64"
+              "channel_id": {
+                "type": "string"
               }
             },
             "additionalProperties": false
@@ -131,14 +141,32 @@
           }
         },
         "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "prices"
+        ],
+        "properties": {
+          "prices": {
+            "type": "object",
+            "required": [
+              "signal_ids"
+            ],
+            "properties": {
+              "signal_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
       }
-    ],
-    "definitions": {
-      "Uint64": {
-        "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
-        "type": "string"
-      }
-    }
+    ]
   },
   "migrate": null,
   "sudo": null,
@@ -161,35 +189,50 @@
         }
       }
     },
+    "is_channel_id_allowed": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Boolean",
+      "type": "boolean"
+    },
     "price": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Price",
-      "type": "object",
-      "required": [
-        "price",
-        "signal_id",
-        "status",
-        "timestamp"
-      ],
-      "properties": {
-        "price": {
-          "$ref": "#/definitions/Uint64"
+      "title": "Nullable_Price",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Price"
         },
-        "signal_id": {
-          "type": "string"
-        },
-        "status": {
-          "$ref": "#/definitions/Status"
-        },
-        "timestamp": {
-          "$ref": "#/definitions/Int64"
+        {
+          "type": "null"
         }
-      },
-      "additionalProperties": false,
+      ],
       "definitions": {
         "Int64": {
           "description": "An implementation of i64 that is using strings for JSON encoding/decoding, such that the full i64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `i64` to get the value out:\n\n``` # use cosmwasm_std::Int64; let a = Int64::from(258i64); assert_eq!(a.i64(), 258); ```",
           "type": "string"
+        },
+        "Price": {
+          "type": "object",
+          "required": [
+            "price",
+            "signal_id",
+            "status",
+            "timestamp"
+          ],
+          "properties": {
+            "price": {
+              "$ref": "#/definitions/Uint64"
+            },
+            "signal_id": {
+              "type": "string"
+            },
+            "status": {
+              "$ref": "#/definitions/Status"
+            },
+            "timestamp": {
+              "$ref": "#/definitions/Int64"
+            }
+          },
+          "additionalProperties": false
         },
         "Status": {
           "type": "string",
@@ -207,23 +250,64 @@
         }
       }
     },
-    "tunnel_config": {
+    "prices": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "IbcEndpoint",
-      "type": "object",
-      "required": [
-        "channel_id",
-        "port_id"
-      ],
-      "properties": {
-        "channel_id": {
+      "title": "Array_of_Nullable_Price",
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/Price"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "definitions": {
+        "Int64": {
+          "description": "An implementation of i64 that is using strings for JSON encoding/decoding, such that the full i64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `i64` to get the value out:\n\n``` # use cosmwasm_std::Int64; let a = Int64::from(258i64); assert_eq!(a.i64(), 258); ```",
           "type": "string"
         },
-        "port_id": {
+        "Price": {
+          "type": "object",
+          "required": [
+            "price",
+            "signal_id",
+            "status",
+            "timestamp"
+          ],
+          "properties": {
+            "price": {
+              "$ref": "#/definitions/Uint64"
+            },
+            "signal_id": {
+              "type": "string"
+            },
+            "status": {
+              "$ref": "#/definitions/Status"
+            },
+            "timestamp": {
+              "$ref": "#/definitions/Int64"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Status": {
+          "type": "string",
+          "enum": [
+            "PRICE_STATUS_UNSPECIFIED",
+            "PRICE_STATUS_UNKNOWN_SIGNAL_ID",
+            "PRICE_STATUS_NOT_READY",
+            "PRICE_STATUS_AVAILABLE",
+            "PRICE_STATUS_NOT_IN_CURRENT_FEEDS"
+          ]
+        },
+        "Uint64": {
+          "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
           "type": "string"
         }
-      },
-      "additionalProperties": false
+      }
     }
   }
 }
