@@ -1,5 +1,5 @@
 [package]
-name = "tunnel-consumer-ibc"
+name = "tunnel-consumer-ibc-hook"
 version = "0.1.0"
 authors = ["Band Protocol <connect@bandprotocol.com>"]
 edition = "2021"
@@ -8,6 +8,17 @@ edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
 
 [features]
 # use library feature to disable all instantiate/execute/query exports
@@ -22,9 +33,9 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 
 [dependencies]
 cosmwasm-schema = "2.1.0"
-cosmwasm-std = { version = "2.1.4", features = ["stargate"] }
+cosmwasm-std = "2.1.4"
 cw-band = { path = "../../packages/cw-band", version = "0.3.0", features = ["tunnel"] }
-cw-controllers = "2.0.0"
 cw-storage-plus = "2.0.0"
+cw-controllers = "2.0.0"
 cw2 = "2.0.0"
-thiserror = { version = "2.0.3" }
+thiserror = { version = "1.0.58" }

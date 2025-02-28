@@ -155,6 +155,7 @@ fn query_reference_data_bulk(
         .map(|pair| query_reference_data(deps, pair))
         .collect()
 }
+
 // TODO: Writing test
 #[cfg(test)]
 mod tests {}
