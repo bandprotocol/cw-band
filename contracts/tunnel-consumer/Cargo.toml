@@ -1,5 +1,5 @@
 [package]
-name = "tunnel-consumer"
+name = "tunnel-consumer-ibc"
 version = "0.1.0"
 authors = ["Band Protocol <connect@bandprotocol.com>"]
 edition = "2021"
