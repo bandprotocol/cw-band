@@ -66,9 +66,35 @@ jobs:
         - target
         key: cargocache-cw1-subkeys-rust:1.81.0-{{ checksum "~/project/Cargo.lock" }}
 
-  contract-tunnel-consumer:
+  contract-tunnel-consumer-ibc:
     executor: default
-    working_directory: ~/project/contracts/tunnel-consumer
+    working_directory: ~/project/contracts/tunnel-consumer-ibc
+    steps:
+    - checkout:
+        path: ~/project
+    - run:
+        name: Version information
+        command: rustc --version; cargo --version; rustup --version
+    - restore_cache:
+        keys:
+        - cargocache-cw1-subkeys-rust:1.81.0-{{ checksum "~/project/Cargo.lock" }}
+    - run:
+        name: Unit Tests
+        environment:
+          RUST_BACKTRACE: 1
+        command: cargo unit-test --locked
+    - run:
+        name: Build and run schema generator
+        command: cargo schema --locked
+    - save_cache:
+        paths:
+        - /usr/local/cargo/registry
+        - target
+        key: cargocache-cw1-subkeys-rust:1.81.0-{{ checksum "~/project/Cargo.lock" }}
+
+  contract-tunnel-consumer-ibc-hook:
+    executor: default
+    working_directory: ~/project/contracts/tunnel-consumer-ibc-hook
     steps:
     - checkout:
         path: ~/project
