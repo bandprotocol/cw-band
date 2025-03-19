@@ -18,7 +18,8 @@ workflows:
   test:
     jobs:
     - contract-price-feed
-    - contract-tunnel-consumer
+    - contract-tunnel-consumer-ibc
+    - contract-tunnel-consumer-ibc-hook
     - package-cw-band
     - lint
     - wasm-build
