@@ -3,7 +3,7 @@ version: 2.1
 executors:
   default:
     docker:
-    - image: rust:1.82.0
+    - image: rust:1.85.0
   ubuntu:
     machine: true
   ci-builds:
@@ -52,7 +52,7 @@ jobs:
         command: rustc --version; cargo --version; rustup --version
     - restore_cache:
         keys:
-        - cargocache-cw1-subkeys-rust:1.82.0-{{ checksum "~/project/Cargo.lock" }}
+        - cargocache-cw1-subkeys-rust:1.85.0-{{ checksum "~/project/Cargo.lock" }}
     - run:
         name: Unit Tests
         environment:
@@ -65,7 +65,7 @@ jobs:
         paths:
         - /usr/local/cargo/registry
         - target
-        key: cargocache-cw1-subkeys-rust:1.82.0-{{ checksum "~/project/Cargo.lock" }}
+        key: cargocache-cw1-subkeys-rust:1.85.0-{{ checksum "~/project/Cargo.lock" }}
 
   contract-tunnel-consumer-ibc:
     executor: default
@@ -78,7 +78,7 @@ jobs:
         command: rustc --version; cargo --version; rustup --version
     - restore_cache:
         keys:
-        - cargocache-cw1-subkeys-rust:1.82.0-{{ checksum "~/project/Cargo.lock" }}
+        - cargocache-cw1-subkeys-rust:1.85.0-{{ checksum "~/project/Cargo.lock" }}
     - run:
         name: Unit Tests
         environment:
@@ -91,7 +91,7 @@ jobs:
         paths:
         - /usr/local/cargo/registry
         - target
-        key: cargocache-cw1-subkeys-rust:1.82.0-{{ checksum "~/project/Cargo.lock" }}
+        key: cargocache-cw1-subkeys-rust:1.85.0-{{ checksum "~/project/Cargo.lock" }}
 
   contract-tunnel-consumer-ibc-hook:
     executor: default
@@ -104,7 +104,7 @@ jobs:
         command: rustc --version; cargo --version; rustup --version
     - restore_cache:
         keys:
-        - cargocache-cw1-subkeys-rust:1.82.0-{{ checksum "~/project/Cargo.lock" }}
+        - cargocache-cw1-subkeys-rust:1.85.0-{{ checksum "~/project/Cargo.lock" }}
     - run:
         name: Unit Tests
         environment:
@@ -117,7 +117,7 @@ jobs:
         paths:
         - /usr/local/cargo/registry
         - target
-        key: cargocache-cw1-subkeys-rust:1.82.0-{{ checksum "~/project/Cargo.lock" }}
+        key: cargocache-cw1-subkeys-rust:1.85.0-{{ checksum "~/project/Cargo.lock" }}
 
   package-cw-band:
     executor: default
@@ -130,7 +130,7 @@ jobs:
         command: rustc --version; cargo --version; rustup --version; rustup target list --installed
     - restore_cache:
         keys:
-        - cargocache-v2-controllers:1.82.0-{{ checksum "~/project/Cargo.lock" }}
+        - cargocache-v2-controllers:1.85.0-{{ checksum "~/project/Cargo.lock" }}
     - run:
         name: Build library for native target
         command: cargo build --locked
@@ -141,7 +141,7 @@ jobs:
         paths:
         - /usr/local/cargo/registry
         - target
-        key: cargocache-v2-controllers:1.82.0-{{ checksum "~/project/Cargo.lock" }}
+        key: cargocache-v2-controllers:1.85.0-{{ checksum "~/project/Cargo.lock" }}
 
   lint:
     executor: default
@@ -152,7 +152,7 @@ jobs:
         command: rustc --version; cargo --version; rustup --version; rustup target list --installed
     - restore_cache:
         keys:
-        - cargocache-v2-lint-rust:1.82.0-{{ checksum "Cargo.lock" }}
+        - cargocache-v2-lint-rust:1.85.0-{{ checksum "Cargo.lock" }}
     - run:
         name: Add rustfmt component
         command: rustup component add rustfmt
@@ -171,7 +171,7 @@ jobs:
         - target/debug/.fingerprint
         - target/debug/build
         - target/debug/deps
-        key: cargocache-v2-lint-rust:1.82.0-{{ checksum "Cargo.lock" }}
+        key: cargocache-v2-lint-rust:1.85.0-{{ checksum "Cargo.lock" }}
 
   # This runs one time on the top level to ensure all contracts compile properly into wasm.
   # We don't run the wasm build per contract build, and then reuse a lot of the same dependencies, so this speeds up CI time
@@ -187,7 +187,7 @@ jobs:
         command: rustc --version; cargo --version; rustup --version
     - restore_cache:
         keys:
-        - cargocache-wasm-rust:1.82.0-{{ checksum "~/project/Cargo.lock" }}
+        - cargocache-wasm-rust:1.85.0-{{ checksum "~/project/Cargo.lock" }}
     - run:
         name: Add wasm32 target
         command: rustup target add wasm32-unknown-unknown
@@ -202,12 +202,12 @@ jobs:
     - run:
         name: Install cosmwasm-check
         # Uses --debug for compilation speed
-        command: cargo install --debug --version 2.1.4 cosmwasm-check
+        command: cargo install --debug --version 2.2.2 cosmwasm-check
     - save_cache:
         paths:
         - /usr/local/cargo/registry
         - target
-        key: cargocache-wasm-rust:1.82.0-{{ checksum "~/project/Cargo.lock" }}
+        key: cargocache-wasm-rust:1.85.0-{{ checksum "~/project/Cargo.lock" }}
     - run:
         name: Check wasm contracts
         command: cosmwasm-check ./target/wasm32-unknown-unknown/release/*.wasm
