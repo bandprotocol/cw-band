@@ -23,3 +23,34 @@ cosmwasm/workspace-optimizer:0.12.7
 
 To generate the JSON schema files for the contract call, queries and query responses, run the following script in the
 repo root: `/scripts/build_schemas.sh` or run `cargo schema` in the smart contract directory.
+
+## Usage
+
+### Querying Prices
+
+To query prices, the contract can be queried with QueryMsg::Prices where QueryMsg::Prices is defined as:
+
+```rust
+#[cw_serde]
+#[derive(QueryResponses)]
+pub enum QueryMsg {
+    #[returns(Vec<Option<cw_band::tunnel::packet::Price>>)]
+    Prices { signal_ids: Vec<String> },
+}
+```
+
+where signal_ids is a list of signal ids to query.
+The contract will return a list of prices for the given signal ids.
+
+An example QueryMsg for query signal CS:BTC-USD is:
+
+```json
+{
+    "prices": {
+        "signal_ids": [
+            "CS:BTC-USD"
+        ]
+    }
+}
+```
+
