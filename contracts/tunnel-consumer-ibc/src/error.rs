@@ -10,11 +10,11 @@ pub enum ContractError {
     Unauthorized,
 
     #[error("Invalid tunnel version")]
-    InvalidTunnelVersion { actual: String, expected: String },
+    InvalidTunnelVersion { expected: String, actual: String },
 
     #[error("Invalid channel order")]
     InvalidChannelOrder {
-        actual: IbcOrder,
         expected: IbcOrder,
+        actual: IbcOrder,
     },
 }

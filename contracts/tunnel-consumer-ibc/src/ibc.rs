@@ -94,15 +94,15 @@ fn enforce_order_and_version(
     // Check channel version
     if channel.version != TUNNEL_APP_VERSION {
         return Err(ContractError::InvalidTunnelVersion {
-            actual: channel.version.clone(),
             expected: TUNNEL_APP_VERSION.to_string(),
+            actual: channel.version.clone(),
         });
     }
     if let Some(version) = counterparty_version {
         if version != TUNNEL_APP_VERSION {
             return Err(ContractError::InvalidTunnelVersion {
-                actual: version.to_string(),
                 expected: TUNNEL_APP_VERSION.to_string(),
+                actual: version.to_string(),
             });
         }
     }
@@ -110,8 +110,8 @@ fn enforce_order_and_version(
     // IBC channel must be unordered
     if channel.order != TUNNEL_ORDER {
         return Err(ContractError::InvalidChannelOrder {
-            actual: channel.order.clone(),
             expected: TUNNEL_ORDER,
+            actual: channel.order.clone(),
         });
     }
 
