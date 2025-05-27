@@ -2,7 +2,7 @@
 
 ## Overview
 
-This contract is a demo implementation on how to consumer data from BandChain's tunnel through IBC Hook with CosmWasm.
+This contract is a demo implementation on how to consume data from BandChain's tunnel through IBC Hook with CosmWasm.
 The contract shown here is still under development and is **NOT** intended for production use.
 
 ## Build
