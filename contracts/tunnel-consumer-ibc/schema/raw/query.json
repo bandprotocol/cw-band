@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "admin"
+      ],
+      "properties": {
+        "admin": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "is_channel_id_allowed"
+      ],
+      "properties": {
+        "is_channel_id_allowed": {
+          "type": "object",
+          "required": [
+            "channel_id"
+          ],
+          "properties": {
+            "channel_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "price"
+      ],
+      "properties": {
+        "price": {
+          "type": "object",
+          "required": [
+            "signal_id"
+          ],
+          "properties": {
+            "signal_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "prices"
+      ],
+      "properties": {
+        "prices": {
+          "type": "object",
+          "required": [
+            "signal_ids"
+          ],
+          "properties": {
+            "signal_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

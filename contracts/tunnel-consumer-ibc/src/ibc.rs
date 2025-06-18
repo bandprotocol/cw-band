@@ -3,7 +3,7 @@ use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     attr, from_json, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannel,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcPacket,
-    IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, Never, StdAck,
+    IbcPacketAckMsg, IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, Never,
 };
 
 use cw_band::tunnel::packet::{ack_fail, ack_success, TunnelPacket};
@@ -68,20 +68,11 @@ pub fn ibc_packet_receive(
 pub fn ibc_packet_ack(
     _deps: DepsMut,
     _env: Env,
-    msg: IbcPacketAckMsg,
+    _msg: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, ContractError> {
-    let std_ack: StdAck = from_json(&msg.acknowledgement.data)?;
-    let res = match std_ack {
-        StdAck::Success(_) => IbcBasicResponse::new()
-            .add_attribute("action", "acknowledge")
-            .add_attribute("success", "true"),
-        StdAck::Error(err) => IbcBasicResponse::new()
-            .add_attribute("action", "acknowledge")
-            .add_attribute("success", "false")
-            .add_attribute("error", err),
-    };
-
-    Ok(res)
+    Ok(IbcBasicResponse::default()
+        .add_attribute("action", "acknowledge")
+        .add_attribute("success", "true"))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -102,17 +93,26 @@ fn enforce_order_and_version(
 ) -> Result<(), ContractError> {
     // Check channel version
     if channel.version != TUNNEL_APP_VERSION {
-        return Err(ContractError::InvalidTunnelVersion);
+        return Err(ContractError::InvalidTunnelVersion {
+            expected: TUNNEL_APP_VERSION.to_string(),
+            actual: channel.version.clone(),
+        });
     }
     if let Some(version) = counterparty_version {
         if version != TUNNEL_APP_VERSION {
-            return Err(ContractError::InvalidTunnelVersion);
+            return Err(ContractError::InvalidTunnelVersion {
+                expected: TUNNEL_APP_VERSION.to_string(),
+                actual: version.to_string(),
+            });
         }
     }
 
     // IBC channel must be unordered
     if channel.order != TUNNEL_ORDER {
-        return Err(ContractError::InvalidChannelOrder {});
+        return Err(ContractError::InvalidChannelOrder {
+            expected: TUNNEL_ORDER,
+            actual: channel.order.clone(),
+        });
     }
 
     Ok(())

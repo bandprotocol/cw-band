@@ -1,6 +1,6 @@
 use cosmwasm_schema::write_api;
 
-use tunnel_consumer::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use tunnel_consumer_ibc_hook::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 fn main() {
     write_api! {
